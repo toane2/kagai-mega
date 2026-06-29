@@ -1,0 +1,24 @@
+{
+  "_comment": "Manual overrides for article analysis. Add the article URL as key, then set any fields to override. Re-run generate_report.py after editing.",
+  "_example": {
+    "https://note.com/example/n/nXXXXXX": {
+      "relevant": true,
+      "analysis": {
+        "holdings": [
+          {"currency": "USD", "amount_jpy": 10000},
+          {"currency": "JPY", "amount_jpy": 90000}
+        ],
+        "intent": "手動補足: スクリーンショットより USD 10k 購入確認",
+        "trades": [
+          {
+            "from_currency": "JPY",
+            "to_currency": "USD",
+            "rate": 161.56,
+            "amount_from_jpy": 10000,
+            "date": "2026-06-26"
+          }
+        ]
+      }
+    }
+  }
+}

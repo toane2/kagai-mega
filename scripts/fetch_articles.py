@@ -1,13 +1,23 @@
 """
-fetch_articles.py
-Fetches the latest note.com article for each Gaika team posted this week.
-Uses note.com's public API to avoid JS-rendering issues.
-Writes output/articles.json.
+fetch_articles.py  —  Gaika Monitor article logger
+===================================================
+Maintains data/article_log.json as a persistent store.
+
+Each run:
+  1. Fetches the top 5 articles per team from the note.com API
+  2. Adds any URL not already in the log (fetches body via __NUXT__)
+  3. Leaves existing entries untouched (preserves analysis)
+
+Usage:
+    python scripts/fetch_articles.py
+
+After this, run the analysis step (Claude), then generate_report.py.
 """
 
 import json
-import time
+import re
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -40,8 +50,8 @@ TEAMS = [
 ]
 
 NOTE_API_CONTENTS = "https://note.com/api/v2/creators/{username}/contents?kind=note&page=1"
-NOTE_API_ARTICLE  = "https://note.com/api/v2/notes/{key}"
 NOTE_ARTICLE_URL  = "https://note.com/{username}/n/{key}"
+ARTICLES_PER_TEAM = 5   # check top N from each team to catch anything new
 
 HEADERS = {
     "User-Agent": (
@@ -50,22 +60,21 @@ HEADERS = {
         "Chrome/124.0.0.0 Safari/537.36"
     ),
     "Accept-Language": "ja,en-US;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-JST = timezone(timedelta(hours=9))
-OUTPUT = Path("output/articles.json")
-DELAY  = 1.5   # seconds between requests — be polite to note.com
+JST     = timezone(timedelta(hours=9))
+LOG     = Path("data/article_log.json")
+DELAY   = 1.5
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
-def week_start_jst() -> datetime:
-    """Return 7 days ago from now (rolling 7-day window)."""
-    return datetime.now(JST) - timedelta(days=7)
+def now_iso() -> str:
+    return datetime.now(JST).isoformat()
 
 
 def parse_date(s: str) -> datetime | None:
-    """Parse note.com publishAt strings (ISO 8601 variants)."""
     for fmt in ("%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S%z"):
         try:
             return datetime.strptime(s, fmt)
@@ -74,104 +83,150 @@ def parse_date(s: str) -> datetime | None:
     return None
 
 
-def get(url: str, label: str) -> dict | None:
-    """GET JSON with basic error handling."""
+def week_ago() -> datetime:
+    return datetime.now(JST) - timedelta(days=7)
+
+
+def load_log() -> dict:
+    if LOG.exists():
+        return json.loads(LOG.read_text(encoding="utf-8"))
+    return {"last_updated": now_iso(), "articles": {}}
+
+
+def save_log(log: dict) -> None:
+    LOG.parent.mkdir(exist_ok=True)
+    log["last_updated"] = now_iso()
+    LOG.write_text(json.dumps(log, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def api_get(url: str, label: str) -> dict | None:
     try:
         r = requests.get(url, headers=HEADERS, timeout=15)
         r.raise_for_status()
         return r.json()
     except requests.HTTPError as e:
-        print(f"  ✗ HTTP {e.response.status_code} — {label}", file=sys.stderr)
+        print(f"  HTTP {e.response.status_code} -- {label}", file=sys.stderr)
     except Exception as e:
-        print(f"  ✗ {type(e).__name__}: {e} — {label}", file=sys.stderr)
+        print(f"  {type(e).__name__}: {e} -- {label}", file=sys.stderr)
     return None
 
 
-# ── Core logic ─────────────────────────────────────────────────────────────────
+def strip_html(s: str) -> str:
+    s = re.sub(r"<[^>]+>", " ", s)
+    for ent, rep in [("&nbsp;", " "), ("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"')]:
+        s = s.replace(ent, rep)
+    return re.sub(r"\s{2,}", " ", s).strip()
 
-def fetch_team(username: str, cutoff: datetime) -> dict:
-    """Return a structured dict for one team, with up to 2 recent articles.
 
-    has_post is True if any of the 2 articles falls within the 7-day rolling
-    window (cutoff). Both articles are always fetched regardless of date.
+def fetch_body(url: str) -> tuple[str, str]:
     """
-    import re
-    result = {
-        "username": username,
-        "profile_url": f"https://note.com/{username}",
-        "has_post": False,
-        "articles": [],
-        "error": None,
-    }
+    Fetch article body from HTML via window.__NUXT__ string extraction.
+    Returns (body_text, method).
+    """
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=20)
+        r.raise_for_status()
+        html = r.text
+    except Exception as e:
+        return f"(fetch error: {e})", "error"
 
-    # 1) Get the list of contents
-    data = get(NOTE_API_CONTENTS.format(username=username), f"{username}/contents")
-    if data is None:
-        result["error"] = "Failed to fetch content list"
-        return result
+    # Find the window.__NUXT__ script tag
+    scripts = re.findall(r"<script[^>]*>(.*?)</script>", html, re.DOTALL)
+    nuxt_script = next((s for s in scripts if "window.__NUXT__" in s), "")
 
-    contents = data.get("data", {}).get("contents", [])
-    if not contents:
-        result["error"] = "No articles found"
-        return result
+    if nuxt_script:
+        all_strings = re.findall(r'"((?:[^"\\]|\\.)*)"', nuxt_script)
+        candidates = [s for s in all_strings if r"\u003C" in s and len(s) > 200]
+        if candidates:
+            raw = max(candidates, key=len)
+            try:
+                decoded = json.loads('"' + raw + '"')
+            except Exception:
+                decoded = raw
+            body = strip_html(decoded)
+            if len(body) > 100:
+                return body, "nuxt_body"
 
-    # 2) Always take the 2 most recent articles (contents are newest-first)
-    for item in contents[:2]:
-        note_key  = item.get("key", "")
-        published = parse_date(item.get("publishAt", ""))
+    # Fallback: og:description
+    og = re.search(r'property="og:description"\s+content="([^"]+)"', html)
+    if not og:
+        og = re.search(r'content="([^"]+)"\s+property="og:description"', html)
+    jld = re.search(r'"description":\s*"([^"]{80,})"', html)
+    best = ""
+    if og:
+        best = og.group(1)
+    if jld and len(jld.group(1)) > len(best):
+        best = jld.group(1)
+    if best:
+        return best, "og_description"
 
-        article = {
-            "post_date":   item.get("publishAt"),
-            "article_url": NOTE_ARTICLE_URL.format(username=username, key=note_key),
-            "title":       item.get("name", ""),
-            "body":        None,
-            "error":       None,
-        }
-
-        # Mark has_post if this article is within the rolling 7-day window
-        if published and published >= cutoff:
-            result["has_post"] = True
-
-        # 3) Fetch the full article body
-        time.sleep(DELAY)
-        article_data = get(NOTE_API_ARTICLE.format(key=note_key), f"{username}/{note_key}")
-        if article_data:
-            body = article_data.get("data", {}).get("body", "")
-            body = re.sub(r"<[^>]+>", " ", body)
-            body = re.sub(r"\s{2,}", " ", body).strip()
-            article["body"] = body or "(本文を取得できませんでした)"
-        else:
-            article["body"] = "(本文を取得できませんでした)"
-            article["error"] = "Article body fetch failed"
-
-        result["articles"].append(article)
-
-    return result
+    return "(本文を取得できませんでした)", "none"
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
-    OUTPUT.parent.mkdir(exist_ok=True)
-    cutoff = week_start_jst()
-    print(f"Week cutoff (JST): {cutoff.isoformat()}")
-    print(f"Fetching {len(TEAMS)} teams…\n")
+    log = load_log()
+    articles = log["articles"]
+    cutoff = week_ago()
 
-    results = []
+    print(f"Log loaded: {len(articles)} existing entries")
+    print(f"Week cutoff (JST): {cutoff.isoformat()}")
+    print(f"Checking {len(TEAMS)} teams (top {ARTICLES_PER_TEAM} each)...\n")
+
+    total_new = 0
     for i, username in enumerate(TEAMS, 1):
-        print(f"[{i:02d}/{len(TEAMS)}] {username}", end=" … ", flush=True)
-        record = fetch_team(username, cutoff)
-        status = "✓ post found" if record["has_post"] else "– no post this week"
-        if record.get("error") and not record.get("articles"):
-            status = f"✗ error: {record['error']}"
-        print(status)
-        results.append(record)
+        print(f"[{i:02d}/{len(TEAMS)}] {username}", end=" ... ", flush=True)
+
+        data = api_get(NOTE_API_CONTENTS.format(username=username), f"{username}/contents")
+        if not data:
+            print("API error")
+            continue
+
+        contents = data.get("data", {}).get("contents", [])
+        new_count = 0
+
+        for item in contents[:ARTICLES_PER_TEAM]:
+            key      = item.get("key", "")
+            url      = NOTE_ARTICLE_URL.format(username=username, key=key)
+            pub_date = item.get("publishAt")
+
+            if url in articles:
+                continue  # already logged
+
+            # New article — fetch body
+            time.sleep(DELAY)
+            body, method = fetch_body(url)
+
+            published = parse_date(pub_date or "")
+            this_week = bool(published and published >= cutoff)
+
+            articles[url] = {
+                "url":        url,
+                "username":   username,
+                "title":      item.get("name", ""),
+                "post_date":  pub_date,
+                "this_week":  this_week,
+                "body":       body,
+                "body_method": method,
+                "fetched_at": now_iso(),
+                "relevant":   None,   # null = not yet determined
+                "analyzed":   False,
+                "analysis":   None,
+            }
+            new_count += 1
+            total_new += 1
+
+        existing = sum(1 for url, a in articles.items() if a["username"] == username)
+        print(f"+{new_count} new  ({existing} total in log)")
         time.sleep(DELAY)
 
-    OUTPUT.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
-    posted = sum(1 for r in results if r["has_post"])
-    print(f"\nDone. {posted}/{len(TEAMS)} teams posted this week.")
-    print(f"Saved → {OUTPUT}")
+    save_log(log)
+
+    unanalyzed = sum(1 for a in articles.values() if not a["analyzed"])
+    print(f"\nDone. {total_new} new articles added.")
+    print(f"Unanalyzed entries: {unanalyzed}")
+    print(f"Log saved -> {LOG}  ({len(articles)} total entries)")
 
 
 if __name__ == "__main__":

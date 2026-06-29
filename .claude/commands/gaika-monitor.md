@@ -1,40 +1,78 @@
 # Gaika Trading Position Monitor
 
-Monitor this week's trading positions from all 22 Gaika game participants via their note.com articles.
+Monitor the 22 Gaika game participants via their note.com articles.
+No-leverage foreign exchange competition (ソニー銀行). 10 weeks, 100,000 JPY starting capital.
 
-## Steps
+## Workflow
 
-### 1. Fetch the latest articles
+### 1. Fetch new articles
 ```bash
-python scripts/fetch_articles.py
+PYTHONIOENCODING=utf-8 python scripts/fetch_articles.py
 ```
-This writes `output/articles.json` — one entry per team with their raw article text (or a "no post" flag).
+Adds only NEW articles (not already in `data/article_log.json`) to the log. Existing entries preserved.
 
-### 2. Analyze each article
-For each team that has posted this week, carefully extract:
-- **Assets/currencies held**: name every instrument mentioned (e.g. USD/JPY, gold, BTC)
-- **Entry price** and **exit price or target** if stated
-- **Position size or leverage** (%, lot size, or any leverage ratio)
-- **Strategy summary**: one sentence describing their stated approach
-- **Notable changes** from previous weeks if the author mentions any
+### 2. Analyze unanalyzed articles
 
-For teams with no post, set `has_post: false`.
+Read `data/article_log.json`. Find all entries where `"analyzed": false`.
 
-### 3. Flag anomalies — mark any team where:
-- Leverage is explicitly 10× or higher → flag `high_leverage`
-- A single position is described as >50% of portfolio → flag `large_position`
-- Their current trade contradicts their stated strategy (e.g. "long-term holder" with a same-day reversal) → flag `strategy_mismatch`
+For each such entry, fill the `analysis` field. Then set `"analyzed": true`.
 
-### 4. Generate the visual report
+**Relevance check first:**
+- If the article is clearly NOT about the competition (e.g. travel blog, paid investment guide, corporate analysis, unrelated topics), set `"relevant": false` and `"analyzed": true`. Leave `analysis` as null. Skip further analysis.
+- If the article is about the competition, an intro post stating their stance, or any mention of holdings/trades: set `"relevant": true`.
+
+**For relevant articles, extract:**
+
+```json
+"analysis": {
+  "trades": [
+    {
+      "from_currency": "JPY",
+      "to_currency": "EUR",
+      "rate": 184.94,
+      "amount_from_jpy": 100000,
+      "date": "2026-06-23"
+    }
+  ],
+  "holdings": [
+    {"currency": "EUR", "amount_jpy": 99788},
+    {"currency": "JPY", "amount_jpy": 0}
+  ],
+  "intent": "円安継続を見込みEURにオールイン、目標186円",
+  "changes_since_prev": null
+}
+```
+
+**Rules:**
+- `rate`: exact number stated in the article. Null if not explicitly given.
+- `amount_from_jpy`: exact JPY amount spent. If they say "1万円分 USD を購入" → 10000. If they say "全額ユーロに" → 100000.
+- Infer remaining holdings from context: if "1万円分だけ買った" and no prior trades → JPY: 90000, target currency: 10000.
+- `holdings` should reflect state at end of article. If they sold everything and returned to JPY, show JPY only.
+- `intent`: 1-2 brief phrases in Japanese. Just their stated reason and position. No background, no story.
+  Examples: "USD/JPY押し目待ち、介入後エントリー狙い" / "AIの指示に全従、EUR全額保有" / "様子見、キャッシュ保持"
+- `changes_since_prev`: for this team's articles, if this article is NOT the team's oldest in the log, briefly note what changed since the previous article. Otherwise null.
+
+**Do NOT:**
+- Quote the article text
+- Explain their background or story
+- Add context beyond what they explicitly stated
+- Guess rates not written as numbers
+
+### 3. Write updated log
+Save the modified `data/article_log.json` with all analyzed entries filled.
+
+### 4. Generate report
 ```bash
-python scripts/generate_report.py
+PYTHONIOENCODING=utf-8 python scripts/generate_report.py
 ```
-This writes `output/report.html`. Open it in a browser.
 
-### 5. Present a concise summary
-After the report is generated, respond with:
-- A markdown table (team | assets | entry→target | flags)
-- A 2–3 sentence paragraph on the most notable patterns across the whole group
+### 5. Summarize
+After the report, give a brief markdown table:
+
+| チーム | 保有 | 直近取引 | 意図 |
+|--------|------|----------|------|
+
+Then 2-3 sentences on notable patterns.
 
 ## Teams
 | Handle | note.com URL |

@@ -1,730 +1,902 @@
 [
   {
     "username": "cool_parrot6215",
-    "profile_url": "https://note.com/cool_parrot6215",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T11:26:08+09:00",
         "article_url": "https://note.com/cool_parrot6215/n/n819109fa618b",
         "title": "2026年度 第2回 全日本大学「外貨取引」選手権大会　第1週",
-        "assets": [],
-        "strategy": "Event-driven only: trade only around pre-scheduled economic events (CPI, employment stats, etc.). No position taken this week — rule was finalised Monday morning.",
-        "changes": null,
-        "flags": []
+        "trade_history": [
+          {
+            "from_currency": "JPY",
+            "to_currency": "USD",
+            "rate": null,
+            "date": "2026-06-22",
+            "source_quote": "しかし実は今週、月曜日の時点であっさり2万円分だけ米ドルを買ってしまいました。"
+          }
+        ],
+        "current_holding": [
+          {
+            "currency": "USD",
+            "amount_jpy": 20000,
+            "source_quote": "しかし実は今週、月曜日の時点であっさり2万円分だけ米ドルを買ってしまいました。"
+          },
+          {
+            "currency": "JPY",
+            "amount_jpy": null,
+            "source_quote": "上の画像通り10万円の状態からスタートして、米ドルを2万円分買うとスプレッド分お金が減りました。"
+          }
+        ],
+        "strategy": "予定されているイベント直前のみトレードするルールを設けながらも、円安トレンドへの確信と機会損失回避のため月曜日に2万円分の米ドルを購入した。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-26T17:23:56+09:00",
         "article_url": "https://note.com/cool_parrot6215/n/nf5c5483231f1",
         "title": "サイバーエージェントの成長要因と持続的競争優位性に関する組織・事業戦略的考察",
-        "assets": [],
-        "strategy": "Non-competition article (business strategy essay).",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": null,
+        "changes_from_previous": "この記事は大会とは無関係のサイバーエージェントに関する企業分析レポートであり、外貨取引に関する情報は含まれていない。"
       }
     ]
   },
   {
     "username": "gaikafuru",
-    "profile_url": "https://note.com/gaikafuru",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-25T22:56:17+09:00",
         "article_url": "https://note.com/gaikafuru/n/n892344d64461",
         "title": "【大会4日目】まずは言葉から。外貨取引初心者のための基本単語集",
-        "assets": [],
-        "strategy": "Learning phase — observing currency movements before entering. No position yet.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": null,
+            "source_quote": "ここまで私たちは、まだ大きく外貨を買わず、まずは通貨の動きを観察しています。"
+          }
+        ],
+        "strategy": "まだ外貨を購入せず通貨の動きを観察しながら、基本用語の習得を通じて外貨取引の基礎を固めている。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-24T22:45:18+09:00",
         "article_url": "https://note.com/gaikafuru/n/n84461d67b9fe",
         "title": "【大会３日目】私たち、実はドローン飛ばせちゃいます。",
-        "assets": [],
-        "strategy": "Still observing, no trade. Off-topic post (drone camp at Aoyama Gakuin lab).",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": null,
+            "source_quote": "外貨取引については、私たちはまだ大きく動いていません。大会が始まったからといって、焦って買うのではなく、まずは通貨の動きを見ています。"
+          }
+        ],
+        "strategy": "焦って購入せず、なぜ買うかを説明できる状態になってから取引するという方針で観察を続けている。",
+        "changes_from_previous": "どちらの記事も外貨を購入せず観察中という点では変化なし。4日目の記事では基本用語の整理に取り組んでいる点が追加されている。"
       }
     ]
   },
   {
     "username": "kiajobhunting",
-    "profile_url": "https://note.com/kiajobhunting",
     "has_post": false,
     "articles": [
       {
         "post_date": "2026-06-22T19:21:10+09:00",
         "article_url": "https://note.com/kiajobhunting/n/n4772194a757d",
         "title": "外貨取引選手権、開幕。初週は様子見と戦略の再確認から",
-        "assets": [],
-        "strategy": "No position week 1. USD/JPY ~161. Sceptical of popular 'wait for intervention' strategy. Plans event-driven entry when conditions improve.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "まずはこの10万円をどう運用していくか。焦らず、自分の戦い方で相場と向き合っていきたい。"
+          }
+        ],
+        "strategy": "為替介入待ち戦略に懐疑的で、合理的にエッジをとれるポイントを探しながら今週は全体のトレンドと他参加者の心理を観察し、来週から本格的に資金を動かす予定。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-06T18:16:12+09:00",
         "article_url": "https://note.com/kiajobhunting/n/n3dc1513c2863",
         "title": "文学部が挑む全日本大学「外貨取引」選手権　データと理論の隙間を埋める総合知の視点",
-        "assets": [],
-        "strategy": "Pre-competition strategy essay.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "文学部の強みである歴史・文化・心理・社会背景を読み解く総合知のアプローチで、特定の理論やテクニカル指標に依存せずに意思決定する。",
+        "changes_from_previous": "大会前の意気込み記事から実際の開幕週の記事へ。介入待ち戦略への懐疑論を明確にし、来週からの取引参入を予告している。"
       }
     ]
   },
   {
     "username": "gakusei_kangae",
-    "profile_url": "https://note.com/gakusei_kangae",
     "has_post": true,
     "articles": [
+      {
+        "post_date": "2024-05-28T23:04:55+09:00",
+        "article_url": "https://note.com/gakusei_kangae/n/nc92093ba1d02",
+        "title": "大学生投資家が実際にやっている！投資初心者のための【完全投資マニュアル】-購入者特典有-",
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": null,
+        "changes_from_previous": null
+      },
       {
         "post_date": "2026-06-25T10:17:47+09:00",
         "article_url": "https://note.com/gakusei_kangae/n/n207b725e211f",
         "title": "外貨選手権大会1週目",
-        "assets": [],
-        "strategy": "Wait. Historic JPY weakness + Sony Bank spreads make profitable entry unlikely this week. Monitoring other participants.",
-        "changes": null,
-        "flags": []
-      },
-      {
-        "post_date": "2024-05-28T23:04:55+09:00",
-        "article_url": "https://note.com/gakusei_kangae/n/nc92093ba1d02",
-        "title": "大学生投資家が実際にやっている！投資初心者のための【完全投資マニュアル】",
-        "assets": [],
-        "strategy": "Old article (2024) — not competition-related.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "今週の作戦は、「待つ」ことにした。"
+          }
+        ],
+        "strategy": "歴史的円安相場とスプレッドコストを考慮して今週は動かず、他参加者の動向を把握してから来週以降に勝負を仕掛ける。",
+        "changes_from_previous": "有料投資マニュアル記事（2024年）と大会参加記事（2026年）で文脈が全く異なる。大会1週目は待機戦略を明示している。"
       }
     ]
   },
   {
     "username": "masashi_uclab",
-    "profile_url": "https://note.com/masashi_uclab",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-27T14:20:55+09:00",
         "article_url": "https://note.com/masashi_uclab/n/nbe2021745360",
         "title": "大外取 with ClaudeCode!",
-        "assets": [],
-        "strategy": "AI system: ML model analyses rates + Nikkei + gold; Claude agent decides buy/no-buy hourly. Week 1: AI judged intervention risk too high — no trade.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "AIエージェントが毎時間ニュース・機械学習モデル・相場データを分析しエージェント同士の議論で取引判断を行う自動システムを構築し、人間はOKを押すだけという設計で大会に臨む。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-26T18:09:59+09:00",
         "article_url": "https://note.com/masashi_uclab/n/ncf3f47e13d67",
         "title": "【大会第1週】チームUCLab〜全日本大学外貨取引選手権",
-        "assets": [],
-        "strategy": "Week 1 progress report. No trades. AI system architecture described.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "まず今週は、なにも取引しない判断にいたりました。"
+          }
+        ],
+        "strategy": "AIシステムがUSDJPYの162円接近による為替介入リスクが最高水準と判断し今週は取引なし。来週以降も状況を見ながらAIの判断に従う。",
+        "changes_from_previous": "システム紹介記事から実際の第1週報告へ。AIシステムが介入リスク最高水準と判断し取引なしという具体的な判断結果が報告されている。"
       }
     ]
   },
   {
     "username": "keylink_by_kk",
-    "profile_url": "https://note.com/keylink_by_kk",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-29T14:21:08+09:00",
         "article_url": "https://note.com/keylink_by_kk/n/n9d43021367e4",
-        "title": "第２週:今週は豪ドルの短期トレードにチャレンジ!?",
-        "assets": [],
-        "strategy": "Week 2: Watching AUD for short-term entry. Still cash — waiting for post-intervention rebound. Acknowledges no trade = opportunity cost.",
-        "changes": "Shifted focus from USD/JPY (week 1) to AUD short-term trade.",
-        "flags": []
+        "title": "　第２週:今週は豪ドルの短期トレードにチャレンジ!?",
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": null,
+            "source_quote": "ずっと様子見をしているだけでは盛り上がりにも欠けるので、今週は少しギャンブル色は強くなりますが、思い切って賭けに出てみようかと思います。"
+          }
+        ],
+        "strategy": "介入警戒で第1週は様子見だったが、第2週は低ボラティリティの中でも豪ドルを使った短期トレードにチャレンジする方針に転換した。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-22T09:10:59+09:00",
         "article_url": "https://note.com/keylink_by_kk/n/n5fd14945faae",
-        "title": "第1週戦略：歴史的円安水準で、あえて「動かない」という戦い方",
-        "assets": [],
-        "strategy": "Week 1: Deliberate inaction. USD/JPY ~161 (historic JPY weakness). Two reasons to wait: intervention risk + wanting to observe market structure first.",
-        "changes": null,
-        "flags": []
+        "title": "　第1週戦略：歴史的円安水準で、あえて「動かない」という戦い方",
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "あえて現金比率を高めに保つことで、いざという時の「押し目買い」や「トレンド転換」に即座に対応できる柔軟性を確保します。"
+          }
+        ],
+        "strategy": "161円台という高値水準での高値掴みリスクを回避し、現金比率を高く保ちながらチャンスを待つ「動かない」戦略を第1週は徹底する。",
+        "changes_from_previous": "第1週が様子見・現金保持だったのに対し、第2週は豪ドルの短期トレードに転換する方針を表明している。"
       }
     ]
   },
   {
     "username": "atsuya_044",
-    "profile_url": "https://note.com/atsuya_044",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T03:50:45+09:00",
         "article_url": "https://note.com/atsuya_044/n/nfeb87c5015bd",
         "title": "第2回 全日本大学外貨取引選手権 1週目",
-        "assets": [
+        "trade_history": [
           {
-            "name": "EUR/JPY",
-            "direction": "long",
-            "entry": 180.0,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 100
+            "from_currency": "JPY",
+            "to_currency": "EUR",
+            "rate": null,
+            "date": "2026-06-22",
+            "source_quote": "大会がスタートした6月22日に、手元の資金全て(100,000円)を、ユーロに交換したという形です。"
           }
         ],
-        "strategy": "All-in EUR/JPY on 6/22. EUR/JPY had pulled back to early 180s — expected bounce. Writing from Dallas watching 2026 World Cup.",
-        "changes": "Week 1: -minus result. EUR did not rebound as expected.",
-        "flags": ["large_position"]
+        "current_holding": [
+          {
+            "currency": "EUR",
+            "amount_jpy": 99303,
+            "source_quote": "残高：99,303円 損益：△697円"
+          }
+        ],
+        "strategy": "週初に1ユーロが180円台前半まで下落したタイミングで全額ユーロに交換し、週後半の上昇傾向を見て保有継続を判断している。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-20T00:28:19+09:00",
         "article_url": "https://note.com/atsuya_044/n/n2c553ed529ea",
         "title": "第2回 全日本大学「外貨取引」選手権 に向けて",
-        "assets": [],
-        "strategy": "Pre-competition entry post.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "金融知識はないが優勝賞金目的で参加。北米W杯観戦のために渡航費として優勝賞金を活用したいという動機で全力で取り組む意気込みを表明。",
+        "changes_from_previous": "大会前の意気込み記事から実際の第1週報告へ。全額ユーロへのフルベットという具体的なトレードが実行されたことが変化点。"
       }
     ]
   },
   {
     "username": "joyful_turtle486",
-    "profile_url": "https://note.com/joyful_turtle486",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T08:41:30+09:00",
         "article_url": "https://note.com/joyful_turtle486/n/n66c7d4875384",
         "title": "第2回 全日本大学「外貨取引」選手権大会 第1週最終報告",
-        "assets": [
+        "trade_history": [],
+        "current_holding": [
           {
-            "name": "USD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 40
+            "currency": "USD",
+            "amount_jpy": null,
+            "source_quote": "今回は米ドルを中心にユーロ、豪ドルを購入しました。米ドル高が続き、米ドルではプラスに動いたものの、ユーロ、豪ドルは安値が続き損益はマイナスを出してしまいました。"
           },
           {
-            "name": "EUR/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 20
+            "currency": "EUR",
+            "amount_jpy": null,
+            "source_quote": "今回は米ドルを中心にユーロ、豪ドルを購入しました。米ドル高が続き、米ドルではプラスに動いたものの、ユーロ、豪ドルは安値が続き損益はマイナスを出してしまいました。"
           },
           {
-            "name": "AUD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 10
+            "currency": "AUD",
+            "amount_jpy": null,
+            "source_quote": "今回は米ドルを中心にユーロ、豪ドルを購入しました。米ドル高が続き、米ドルではプラスに動いたものの、ユーロ、豪ドルは安値が続き損益はマイナスを出してしまいました。"
+          },
+          {
+            "currency": "JPY",
+            "amount_jpy": 30000,
+            "source_quote": "日本円:30000円"
           }
         ],
-        "strategy": "USD-centric diversified long. Week 1 result: USD positive (USD continued strong); EUR and AUD negative. Watching 6/29 retail sales data.",
-        "changes": "Week-end: EUR started recovering at the close.",
-        "flags": []
+        "strategy": "米ドルを中心に小売売上高などの経済指標を注視しながら、ユーロとAUDの回復を期待しつつ第2週以降もポジションを増やしていく方針。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-27T08:37:35+09:00",
         "article_url": "https://note.com/joyful_turtle486/n/n1dd91c13f7c4",
         "title": "第2回 全日本大学「外貨取引」選手権大会 第1週",
-        "assets": [
+        "trade_history": [
           {
-            "name": "USD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 40
+            "from_currency": "JPY",
+            "to_currency": "USD",
+            "rate": null,
+            "date": null,
+            "source_quote": "思い切って米ドルを4万円分購入しました。"
           },
           {
-            "name": "EUR/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 20
+            "from_currency": "JPY",
+            "to_currency": "EUR",
+            "rate": null,
+            "date": null,
+            "source_quote": "初期配分は次の通りです。米ドル:40000円 ユーロ:20000円 豪ドル:10000円 日本円:30000円"
           },
           {
-            "name": "AUD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 10
+            "from_currency": "JPY",
+            "to_currency": "AUD",
+            "rate": null,
+            "date": null,
+            "source_quote": "初期配分は次の通りです。米ドル:40000円 ユーロ:20000円 豪ドル:10000円 日本円:30000円"
           }
         ],
-        "strategy": "Initial allocation: USD 40k, EUR 20k, AUD 10k, JPY 30k (cash reserve). Despite hesitation about selling JPY during JPY weakness.",
-        "changes": null,
-        "flags": []
+        "current_holding": [
+          {
+            "currency": "USD",
+            "amount_jpy": 40000,
+            "source_quote": "米ドル:40000円"
+          },
+          {
+            "currency": "EUR",
+            "amount_jpy": 20000,
+            "source_quote": "ユーロ:20000円"
+          },
+          {
+            "currency": "AUD",
+            "amount_jpy": 10000,
+            "source_quote": "豪ドル:10000円"
+          },
+          {
+            "currency": "JPY",
+            "amount_jpy": 30000,
+            "source_quote": "日本円:30000円"
+          }
+        ],
+        "strategy": "ドル高・円安傾向継続を見込み米ドルを主軸に、ユーロ・豪ドルにも分散投資しながら30,000円の円を手元に残して柔軟性を確保する。",
+        "changes_from_previous": "第1週中間報告から最終報告へ。ユーロと豪ドルがマイナスとなり全体では損益マイナスが明らかになっている。米ドルはプラスで推移。"
       }
     ]
   },
   {
     "username": "kanno_wmori",
-    "profile_url": "https://note.com/kanno_wmori",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T21:59:44+09:00",
         "article_url": "https://note.com/kanno_wmori/n/n3675f54aad22",
         "title": "転倒(大外取1週目)",
-        "assets": [],
-        "strategy": "No trades week 1 — sick with 39°C fever from Monday. Balance unchanged at 100,000 JPY.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "私の残高は10万円で、一切の取引をしていません。"
+          }
+        ],
+        "strategy": "大会開幕と同時に39度の高熱で寝込んでしまい取引不能な状態が続いたため、結果として第1週は全額JPYのまま保有することになった。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-20T22:58:20+09:00",
         "article_url": "https://note.com/kanno_wmori/n/n5df7a9640f96",
         "title": "漫画みたいな大会に出ることになりました(大外取0週目)",
-        "assets": [],
-        "strategy": "Entry post. Kyoto University economics 2nd year. No international finance courses taken yet.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "経済学部2回生だが専門科目未履修の初心者として、勝負事は1位以外等しく敗者という意識で優勝を目指す意気込みを表明した。",
+        "changes_from_previous": "大会前の意気込み記事から実際の第1週報告へ。体調不良（39度の高熱）により完全に取引できず10万円そのままという予想外の展開が変化点。"
       }
     ]
   },
   {
     "username": "saku03081",
-    "profile_url": "https://note.com/saku03081",
     "has_post": true,
     "articles": [
-      {
-        "post_date": "2026-06-25T23:17:46+09:00",
-        "article_url": "https://note.com/saku03081/n/ne5d707264f25",
-        "title": "かなり頭悪いサッポロ一番塩のアレンジの記録",
-        "assets": [],
-        "strategy": "Non-competition article (ramen recipe). No trading update this week.",
-        "changes": null,
-        "flags": []
-      },
       {
         "post_date": "2026-03-14T19:55:35+09:00",
         "article_url": "https://note.com/saku03081/n/n0fa707f7f0b8",
         "title": "少しずつ更新していくsakuの自己紹介とプロフィール",
-        "assets": [],
-        "strategy": "Self-introduction article (old).",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": null,
+        "changes_from_previous": null
+      },
+      {
+        "post_date": "2026-06-25T23:17:46+09:00",
+        "article_url": "https://note.com/saku03081/n/ne5d707264f25",
+        "title": "かなり頭悪いサッポロ一番塩のアレンジの記録",
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": null,
+        "changes_from_previous": "自己紹介記事（2026年3月）に続くこの記事は大学テストとラーメンの日記であり、どちらも外貨取引の内容を含んでいない。"
       }
     ]
   },
   {
     "username": "re_0oji",
-    "profile_url": "https://note.com/re_0oji",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-26T23:28:37+09:00",
         "article_url": "https://note.com/re_0oji/n/n09cc155fe101",
         "title": "#2｜初めての取引【大外取week1】",
-        "assets": [],
-        "strategy": "First trade article — exact position not extractable from metadata. Predominantly waiting stance. Context: Japan R32 vs Brazil in 2026 WC.",
-        "changes": null,
-        "flags": []
+        "trade_history": [
+          {
+            "from_currency": "JPY",
+            "to_currency": "USD",
+            "rate": 161.56,
+            "date": "2026-06-26",
+            "source_quote": "今日見ていた中で個人的に「ここが底だな」と思った値段 ─── 【1ドル＝161.56円】 で、まずは1万円分だけ買ってみました！"
+          }
+        ],
+        "current_holding": [
+          {
+            "currency": "USD",
+            "amount_jpy": 10000,
+            "source_quote": "まずは1万円分だけ買ってみました！"
+          },
+          {
+            "currency": "JPY",
+            "amount_jpy": null,
+            "source_quote": "残りの4万円は、今後の変動を見ていつでも動けるように、とりあえずは日本円のまま口座に温存しておくことにします。"
+          }
+        ],
+        "strategy": "指値注文を活用しつつ、リアルタイムでチャートを監視して底値と判断したタイミングで1万円分の米ドルを購入するリスク抑制型の初トレードを実施した。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-24T21:23:37+09:00",
         "article_url": "https://note.com/re_0oji/n/ne8d14caf0390",
         "title": "＃1｜知識ゼロからの外貨取引【大外取week1】",
-        "assets": [],
-        "strategy": "Learning from zero. USD/JPY at ~161 — shocked by historical JPY weakness. Mostly waiting.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "引き続き観察を続けております。"
+          }
+        ],
+        "strategy": "ドル/円のみに注力し、スプレッドコストを考慮しながら指値注文で3万円分を2段階に分けて購入予約する戦略を立てつつ、残り4万円は現金保持する計画を立てた。",
+        "changes_from_previous": "第1記事では指値注文の設定のみで未約定だったが、第2記事では実際に1ドル＝161.56円で1万円分の米ドルを購入し初トレードを実行した。"
       }
     ]
   },
   {
     "username": "yuyu10y",
-    "profile_url": "https://note.com/yuyu10y",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-26T23:03:24+09:00",
         "article_url": "https://note.com/yuyu10y/n/n040af6bd17ec",
-        "title": "大外取 第1週",
-        "assets": [
+        "title": "大外取 第1週 ",
+        "trade_history": [
           {
-            "name": "EUR/JPY",
-            "direction": "long",
-            "entry": 184.94,
-            "target": 186.0,
-            "stop_loss": null,
-            "size_pct": 100
+            "from_currency": "JPY",
+            "to_currency": "EUR",
+            "rate": 184.94,
+            "date": "2026-06-23",
+            "source_quote": "日足チャートから押し目と見てユーロを184.94円で10万円分購入しました。手数料は83円です。"
           }
         ],
-        "strategy": "Bought EUR/JPY at 184.94 (6/22 late night — delayed by phone auth). Identified pullback support on daily chart. Target 186. Spread fee: 83 JPY. Week-end total: 99,788 JPY.",
-        "changes": "EUR did not reach 186 target. Still holding.",
-        "flags": ["large_position"]
+        "current_holding": [
+          {
+            "currency": "EUR",
+            "amount_jpy": 99788,
+            "source_quote": "第1週金曜日23時時点での総額は99,788円でした。"
+          }
+        ],
+        "strategy": "日足チャートで押し目と判断した184.94円でユーロを全額購入し、186円を目標に数日保有する方針。為替介入リスクを警戒しつつもユーロ円の上昇に賭けている。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-23T01:27:26+09:00",
         "article_url": "https://note.com/yuyu10y/n/n2588e820ccd4",
         "title": "🇨🇳上海旅行",
-        "assets": [],
-        "strategy": "Non-competition article (Shanghai travel).",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": null,
+        "changes_from_previous": "上海旅行記事（大会前）と大外取第1週報告では文脈が全く異なる。第1週では184.94円でのユーロ全額購入という具体的なトレードが実行されている。"
       }
     ]
   },
   {
     "username": "mtk____",
-    "profile_url": "https://note.com/mtk____",
     "has_post": true,
     "articles": [
-      {
-        "post_date": "2026-06-27T15:55:40+09:00",
-        "article_url": "https://note.com/mtk____/n/n819eae9e4cbd",
-        "title": "＃3｜僕は、優勝か最下位を取ります。【第1週】",
-        "assets": [],
-        "strategy": "Week 1 done. Starting forced market participation from next Monday. Title declares 'win or last place'. Exact position details not in excerpt.",
-        "changes": null,
-        "flags": []
-      },
       {
         "post_date": "2026-01-16T11:23:55+09:00",
         "article_url": "https://note.com/mtk____/n/n79ac003f67c4",
         "title": "【自己紹介】20歳｜大学生｜はじめてのnote",
-        "assets": [],
-        "strategy": "Self-introduction (old, Jan 2026).",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": null,
+        "changes_from_previous": null
+      },
+      {
+        "post_date": "2026-06-27T15:55:40+09:00",
+        "article_url": "https://note.com/mtk____/n/n819eae9e4cbd",
+        "title": "＃3｜僕は、優勝か最下位を取ります。【第1週】",
+        "trade_history": [
+          {
+            "from_currency": "JPY",
+            "to_currency": "AUD",
+            "rate": null,
+            "date": "2026-06-29",
+            "source_quote": "指値TTS： 111.88円（ソニー銀行の規約で±0.10円離さないといけない）➝TTMで言えばあと0.10円下で約定強制的 にしました！つまり、ほぼ100%月曜朝に即約定するようにしました！"
+          }
+        ],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": null,
+            "source_quote": "ちなみに、3万円にしたのは僕の戦略です。（ちゃんと10万円使いきります）"
+          }
+        ],
+        "strategy": "第1週は消極的だったことを反省し、優勝か最下位を狙うハイリスク・ハイリターン戦略に転換。豪ドル・NZドル・ドル円の3通貨に絞り、月曜即約定するよう指値注文を設定した。",
+        "changes_from_previous": "自己紹介記事（2026年1月）と大会第1週報告では文脈が全く異なる。第1週は未取引だったが第2週に向けてAUD（TTS111.88円）の指値注文を3万円分設定済み。"
       }
     ]
   },
   {
     "username": "mafty_navueerin",
-    "profile_url": "https://note.com/mafty_navueerin",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T18:20:44+09:00",
         "article_url": "https://note.com/mafty_navueerin/n/nf157d34cfc67",
         "title": "スターマー首相退任でポンド上昇を狙った結果、１０万円が９万９５６０円になった話(大外取第1週)",
-        "assets": [
+        "trade_history": [
           {
-            "name": "GBP/JPY",
-            "direction": "long",
-            "entry": 213.94,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 100
+            "from_currency": "JPY",
+            "to_currency": "GBP",
+            "rate": 213.94,
+            "date": null,
+            "source_quote": "そんなことを考えながら、1ポンド＝213.94円で10万円分を購入した。"
+          },
+          {
+            "from_currency": "GBP",
+            "to_currency": "JPY",
+            "rate": 213.00,
+            "date": null,
+            "source_quote": "私は213.94円で購入したポンドを、213.00円で売却した。"
           }
         ],
-        "strategy": "All-in GBP/JPY at 213.94. Thesis: Starmer PM resignation → GBP strength. Spread loss on entry. Week-end: 100,000 → 99,560 JPY (-440 JPY).",
-        "changes": "First week. Loss on spread + unfavourable price move.",
-        "flags": ["large_position"]
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 99560,
+            "source_quote": "10万円が、9万9560円になった。"
+          }
+        ],
+        "strategy": "スターマー首相退任によるポンド上昇を期待して全額ポンドを購入したが期待通りに上がらず213.00円で損切り。スプレッド・事前損切り基準設定の重要性を学んだ。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-13T04:01:34+09:00",
         "article_url": "https://note.com/mafty_navueerin/n/n7214f3d5fff4",
         "title": "【SpaceX IPO】奇跡的に3株当選！売るか残すか、狂乱の初日リアルドキュメント",
-        "assets": [],
-        "strategy": "Non-competition article (SpaceX IPO).",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": null,
+        "changes_from_previous": "SpaceX IPOの株式投資記事から大外取第1週のGBP取引報告へ。文脈が全く異なる。GBPを213.94円で購入し213.00円で売却して440円の損失を計上した。"
       }
     ]
   },
   {
     "username": "kyoichi_osaka",
-    "profile_url": "https://note.com/kyoichi_osaka",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T09:58:45+09:00",
         "article_url": "https://note.com/kyoichi_osaka/n/naed59c44e295",
         "title": "結果報告（第1週）",
-        "assets": [
+        "trade_history": [],
+        "current_holding": [
           {
-            "name": "USD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 25
+            "currency": "USD",
+            "amount_jpy": 25002,
+            "source_quote": "米ドル：25,002円"
           },
           {
-            "name": "GBP/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 15
+            "currency": "GBP",
+            "amount_jpy": 14985,
+            "source_quote": "ポンド：14,985"
           }
         ],
-        "strategy": "Week 1 result: USD 25,002 JPY (+), GBP 14,985 JPY (+). Both positions positive. Plans to trade more aggressively week 2.",
-        "changes": "Both positions profitable. Increasing aggression next week.",
-        "flags": []
+        "strategy": "米ドルとポンド円の2通貨を保有し、第2週はより果敢な取引を目指す。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-25T10:20:31+09:00",
         "article_url": "https://note.com/kyoichi_osaka/n/nb316712c110c",
         "title": "第１週｜始動",
-        "assets": [
+        "trade_history": [
           {
-            "name": "USD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 25
+            "from_currency": "JPY",
+            "to_currency": "USD",
+            "rate": null,
+            "date": null,
+            "source_quote": "メイン：ドル円 … 「利上げしても円安は止まらない」に賭ける主力です！"
           },
           {
-            "name": "GBP/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 15
+            "from_currency": "JPY",
+            "to_currency": "GBP",
+            "rate": null,
+            "date": null,
+            "source_quote": "サブ：ポンド円 … 値動きの大きさを取りにいく変化球です！"
           }
         ],
-        "strategy": "Osaka Pref. Univ. 3rd year. BOJ raised to 1.0% but JPY got weaker (USD/JPY to 161 — worst since Jul 2024). Notes FRB expected to hike again H2.",
-        "changes": null,
-        "flags": []
+        "current_holding": [
+          {
+            "currency": "USD",
+            "amount_jpy": null,
+            "source_quote": "メイン：ドル円 … 「利上げしても円安は止まらない」に賭ける主力です！"
+          },
+          {
+            "currency": "GBP",
+            "amount_jpy": null,
+            "source_quote": "サブ：ポンド円 … 値動きの大きさを取りにいく変化球です！"
+          }
+        ],
+        "strategy": "利上げでも円安が止まらないとの見立てからドル円をメインに、値動きの大きさを狙いポンド円をサブポジションとして保有。介入リスクを認識しつつ損切りラインを設定している。",
+        "changes_from_previous": "第1週中間報告から最終報告へ。米ドル25,002円・ポンド14,985円という具体的な残高が確認できる。"
       }
     ]
   },
   {
     "username": "toshiki_naka",
-    "profile_url": "https://note.com/toshiki_naka",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T23:21:32+09:00",
         "article_url": "https://note.com/toshiki_naka/n/nbe269fbb7a93",
         "title": "第一週：全日本大学外貨取引選手権大会",
-        "assets": [
+        "trade_history": [
           {
-            "name": "CNY/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 20
+            "from_currency": "JPY",
+            "to_currency": "CNY",
+            "rate": null,
+            "date": null,
+            "source_quote": "人民元　2万円"
           },
           {
-            "name": "GBP/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 20
+            "from_currency": "JPY",
+            "to_currency": "GBP",
+            "rate": null,
+            "date": null,
+            "source_quote": "英ポンド　2万円"
           },
           {
-            "name": "SEK/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 10
+            "from_currency": "JPY",
+            "to_currency": "SEK",
+            "rate": null,
+            "date": null,
+            "source_quote": "スウェーデンクローナ　１万円"
           }
         ],
-        "strategy": "Follow-the-crowd strategy (buy what most are buying). Result: CNY -200 (stopped out), GBP ±0, SEK -200. Net -400 JPY. Concluded herding doesn't work.",
-        "changes": "Week 1: -400 JPY total. Strategy abandoned.",
-        "flags": ["strategy_mismatch"]
+        "current_holding": [
+          {
+            "currency": "GBP",
+            "amount_jpy": null,
+            "source_quote": "英ポンド：±０円"
+          }
+        ],
+        "strategy": "全体的に買われている通貨を追う戦略をとったが効果がなく、人民元とスウェーデンクローナで損失（各200円）が発生。次週は自身で調べてAIや情報分析を活用した取引に転換する。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-08T21:26:36+09:00",
         "article_url": "https://note.com/toshiki_naka/n/n17092c4f75c7",
         "title": "第0週：全日本大学外貨取引選手権大会",
-        "assets": [],
-        "strategy": "Pre-competition entry post.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "外貨取引知識が乏しいためAIや他者のアドバイスを活用しながら取引を行い、元金1000倍を目標に掲げて参加する。",
+        "changes_from_previous": "大会前の意気込み記事から実際の第1週報告へ。人民元・英ポンド・スウェーデンクローナを購入したが人民元とクローナで損失（各-200円）が発生している。"
       }
     ]
   },
   {
     "username": "tomoro_0726",
-    "profile_url": "https://note.com/tomoro_0726",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T21:43:46+09:00",
         "article_url": "https://note.com/tomoro_0726/n/ncf94df4fe6b2",
         "title": "豪ドルに全て賭けろ",
-        "assets": [
+        "trade_history": [
           {
-            "name": "AUD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 100
+            "from_currency": "JPY",
+            "to_currency": "AUD",
+            "rate": null,
+            "date": null,
+            "source_quote": "10万円を全て豪ドルに換えてみました。現時点では損しています。"
           }
         ],
-        "strategy": "All-in AUD/JPY. Reasons: (1) bad news priced in, (2) large Japan-Australia rate differential, (3-5) additional bullish factors. Currently losing.",
-        "changes": "First week. AUD move against position.",
-        "flags": ["large_position"]
+        "current_holding": [
+          {
+            "currency": "AUD",
+            "amount_jpy": null,
+            "source_quote": "10万円を全て豪ドルに換えてみました。現時点では損しています。"
+          }
+        ],
+        "strategy": "悪材料織り込み済み・日豪金利差・リスクオン追い風・中国経済回復期待・他通貨比較優位の5つの理由から豪ドルが最も期待値が高いと判断して全額AUDにフルベット。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-21T22:34:09+09:00",
         "article_url": "https://note.com/tomoro_0726/n/n9be3f8181302",
         "title": "外貨取引選手権に出場します",
-        "assets": [],
-        "strategy": "Entry announcement.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "ハイリスク・ハイリターンを基本方針として、場外乱闘的な戦略は使わず正々堂々相場に臨む。",
+        "changes_from_previous": "意気込み記事から実際の第1週報告へ。ハイリスク・ハイリターンの宣言通りに全額豪ドルへのフルベットを実行したことが変化点。"
       }
     ]
   },
   {
     "username": "lovely_rue455",
-    "profile_url": "https://note.com/lovely_rue455",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-29T00:30:03+09:00",
         "article_url": "https://note.com/lovely_rue455/n/n04e2d881beef",
         "title": "全日本大学「外貨取引選手権」一周目",
-        "assets": [],
-        "strategy": "No trade week 1 — afraid of government intervention. Plans to become active. Notes field is split: some waiting, others buying AUD.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "私は、今週は動くことができなかったです。理由として先ほど書いた政府の為替介入が怖かったからです。"
+          }
+        ],
+        "strategy": "為替介入を警戒して第1週は取引なし。ただし機会損失の認識から第2週以降は積極的に取引していく方針に転換する意向を示している。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-21T23:18:00+09:00",
         "article_url": "https://note.com/lovely_rue455/n/na69b1c26046a",
         "title": "こんにちは",
-        "assets": [],
-        "strategy": "Entry/introduction post.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "株式投資・FX未経験の早稲田大学生として精一杯頑張る意気込みを表明した。",
+        "changes_from_previous": "自己紹介記事から第1週報告へ。介入警戒で今週は取引なしだったが来週からの積極的取引参入を宣言している。"
       }
     ]
   },
   {
     "username": "ionub",
-    "profile_url": "https://note.com/ionub",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T22:20:43+09:00",
         "article_url": "https://note.com/ionub/n/n52a319c67395",
         "title": "2026年度 第2回 全日本大学外貨取引選手権大会 第一週",
-        "assets": [
+        "trade_history": [
           {
-            "name": "USD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 5
+            "from_currency": "JPY",
+            "to_currency": "USD",
+            "rate": null,
+            "date": null,
+            "source_quote": "1ヶ月外貨定期預金 USD：5,000円"
           },
           {
-            "name": "GBP/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 5
+            "from_currency": "JPY",
+            "to_currency": "GBP",
+            "rate": null,
+            "date": null,
+            "source_quote": "1ヶ月外貨定期預金 GBP：5,000円"
           },
           {
-            "name": "AUD/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 10
+            "from_currency": "JPY",
+            "to_currency": "AUD",
+            "rate": null,
+            "date": null,
+            "source_quote": "1ヶ月外貨定期預金 AUD：10,000円"
           }
         ],
-        "strategy": "Conservative 1-month FX time deposits: USD 5k, GBP 5k, AUD 10k (20% total). Cash 80k held. Rationale: FX rate risk > interest rate benefit at current JPY levels.",
-        "changes": null,
-        "flags": []
+        "current_holding": [
+          {
+            "currency": "USD",
+            "amount_jpy": 5000,
+            "source_quote": "USD：5,000円"
+          },
+          {
+            "currency": "GBP",
+            "amount_jpy": 5000,
+            "source_quote": "GBP：5,000円"
+          },
+          {
+            "currency": "AUD",
+            "amount_jpy": 10000,
+            "source_quote": "AUD：10,000円"
+          },
+          {
+            "currency": "JPY",
+            "amount_jpy": 80000,
+            "source_quote": "現金：80,000円"
+          }
+        ],
+        "strategy": "全体の20%のみをUSD・GBP・AUDの1ヶ月外貨定期預金（主にAUD重視）に配分し、残り80%の現金は今後の大型経済指標イベント後の追加投資機会のために温存する。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-21T23:49:34+09:00",
         "article_url": "https://note.com/ionub/n/nee4deff20fcd",
         "title": "2026年度 第2回 全日本大学外貨取引選手権大会 参加に際して",
-        "assets": [],
-        "strategy": "Entry/participation announcement.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "仮想通貨裁定取引の経験を活かしつつ、今大会では経済指標・中央銀行政策・国際政治を学びながら適切なリスクテイクができるようになることを目標とする。",
+        "changes_from_previous": "意気込み記事から第1週報告へ。USD5,000・GBP5,000・AUD10,000円を外貨定期預金に配分し80,000円を現金保持するという具体的なポートフォリオが実行されている。"
       }
     ]
   },
   {
     "username": "legal_wren2006",
-    "profile_url": "https://note.com/legal_wren2006",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-28T22:10:56+09:00",
         "article_url": "https://note.com/legal_wren2006/n/n3eda89e7ff08",
         "title": "第一週活動報告…出遅れました(汗)",
-        "assets": [],
-        "strategy": "Market recap: USD/JPY near 162 (heavy at intervention risk); EUR/JPY heavy (EU growth fears + USD strength); GBP uncertain (politics + fiscal). Notes AI vs Human split in competition. Own position not stated in available text.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "諸事情により、今週はトレードができませんでした…。"
+          }
+        ],
+        "strategy": "経済指標・中央銀行イベント後のボラティリティ上昇を狙うイベントドリブン戦略を計画中。今週は諸事情でトレードできず来週から本格参入予定。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-06T22:16:33+09:00",
         "article_url": "https://note.com/legal_wren2006/n/n04520cb4ee19",
         "title": "全日本大学外貨取引選手権大会に参加します",
-        "assets": [],
-        "strategy": "Entry announcement.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "投資サークルで日本株の経験はあるが外国為替は初心者として、実際に相場に触れながら学ぶことを目的に参加する。",
+        "changes_from_previous": "意気込み記事から第1週報告へ。イベントドリブン戦略の具体的な計画（7月の主要イベントカレンダー作成）が示されたが、今週は取引なしという状況が変化点。"
       }
     ]
   },
   {
     "username": "nasgor",
-    "profile_url": "https://note.com/nasgor",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-27T05:32:02+09:00",
         "article_url": "https://note.com/nasgor/n/ne24d4ad0c6be",
         "title": "AIに全財産を委ねたら「男に二言はない、ユーロにフルベット」と言われた話",
-        "assets": [
+        "trade_history": [
           {
-            "name": "EUR/JPY",
-            "direction": "long",
-            "entry": null,
-            "target": null,
-            "stop_loss": null,
-            "size_pct": 100
+            "from_currency": "JPY",
+            "to_currency": "EUR",
+            "rate": null,
+            "date": null,
+            "source_quote": "というわけでユーロに１０万円全額ぶち込んできました。"
           }
         ],
-        "strategy": "Full AI delegation (team: TodAI). AI instructed 'full bet on EUR — a man keeps his word'. All 100k JPY converted to EUR on AI's first call. Humans only allowed to press the app button.",
-        "changes": "Opening day trade. No previous week to compare.",
-        "flags": ["large_position"]
+        "current_holding": [
+          {
+            "currency": "EUR",
+            "amount_jpy": null,
+            "source_quote": "というわけでユーロに１０万円全額ぶち込んできました。"
+          }
+        ],
+        "strategy": "自作AIの判断に完全服従し、AIが「ユーロに全額」と指示したため10万円全額をユーロに投入。大会終了後にAIのロジックと選定理由を全公開する予定。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-21T16:57:59+09:00",
         "article_url": "https://note.com/nasgor/n/n80658c13aab0",
         "title": "全日本外貨取引選手権大会に出場します",
-        "assets": [],
-        "strategy": "Entry announcement.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "AI研究室として自作アルゴリズムによる全自動取引を宣言。人間の判断は一切介在させずAIの決定に絶対服従する方針を表明した。",
+        "changes_from_previous": "意気込み記事からAI初回判断報告へ。AIが「ユーロに全額」と指示し10万円フルベットを実行したことが変化点。理由は大会終了後まで非公開。"
       }
     ]
   },
   {
     "username": "fast_crocus9353",
-    "profile_url": "https://note.com/fast_crocus9353",
     "has_post": true,
     "articles": [
       {
         "post_date": "2026-06-27T14:16:28+09:00",
         "article_url": "https://note.com/fast_crocus9353/n/n80215388ee61",
         "title": "【外貨選手権・第1週】私のスタンスは「徹底的な待ち」：日銀1.0%利上げとドル円攻防戦の裏を読む",
-        "assets": [],
-        "strategy": "USD/JPY focused. No position — 'thorough waiting'. Reasons: BOJ hiked to 1.0% but USD/JPY still near 162; government intervention risk high; Sony Bank spread cost advantage only useful with clear directional move.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [
+          {
+            "currency": "JPY",
+            "amount_jpy": 100000,
+            "source_quote": "今週は状況を徹底的に監視する「待ち」に徹します。"
+          }
+        ],
+        "strategy": "162円の防衛線がどちらに破れるか・政府の次の一手を見極めるためドル円一択で徹底的な待ち姿勢を貫き、為替介入や市場構造変化を捉えて動く戦略。",
+        "changes_from_previous": null
       },
       {
         "post_date": "2026-06-19T15:04:06+09:00",
         "article_url": "https://note.com/fast_crocus9353/n/n9707321f7894",
         "title": "全日本大学外貨取引選手権大会に出場します！",
-        "assets": [],
-        "strategy": "Entry announcement.",
-        "changes": null,
-        "flags": []
+        "trade_history": [],
+        "current_holding": [],
+        "strategy": "大衆心理に流されず自分の軸を持って取引し、常に「なぜ今この通貨を動かすのか」という根拠を持つことを基本哲学として臨む。",
+        "changes_from_previous": "意気込み記事から第1週報告へ。ドル円一択と主戦場を明確にし、162円攻防を分析した上で今週は「徹底的な待ち」という具体的な戦略が示された。"
       }
     ]
   }
