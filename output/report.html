@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gaika Monitor — 2026-06-29 20:08 JST</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --border:    #21262d;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --accent:    #58a6ff;
+    --green:     #22c55e;
+    --red:       #ef4444;
+    --yellow:    #f59e0b;
+    --radius:    8px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    background:var(--bg); color:var(--text);
+    font-family: "SF Mono","Fira Code",ui-monospace,monospace;
+    font-size: 13px; line-height:1.6;
+  }
+  a { color:var(--accent); text-decoration:none; }
+  a:hover { text-decoration:underline; }
+
+  header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;
+  }
+  header h1 { font-size:22px; font-weight:700; letter-spacing:-.5px; }
+  header .meta { color:var(--muted); font-size:12px; }
+  .pill-row { display:flex; gap:12px; margin-top:8px; flex-wrap:wrap; }
+  .stat-pill {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; padding:4px 14px;
+    font-size:12px; display:flex; gap:6px; align-items:center;
+  }
+  .stat-pill .num { color:var(--accent); font-weight:700; font-size:15px; }
+
+  .charts {
+    display:grid; grid-template-columns:1fr 1fr 1fr;
+    gap:16px; padding:24px 32px;
+  }
+  @media(max-width:900px) { .charts { grid-template-columns:1fr; } }
+  .chart-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:16px;
+  }
+  .chart-card h2 { font-size:11px; color:var(--muted); text-transform:uppercase;
+                    letter-spacing:.08em; margin-bottom:12px; }
+  .chart-card canvas { max-height:200px; }
+
+  .table-wrap { padding:0 32px 40px; overflow-x:auto; }
+  .controls { display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  .controls input[type=text] {
+    background:var(--surface); border:1px solid var(--border);
+    color:var(--text); border-radius:6px; padding:7px 12px; font-size:12px;
+    font-family:inherit; outline:none; width:220px;
+  }
+  .controls input[type=text]:focus { border-color:var(--accent); }
+  .controls label { display:flex; align-items:center; gap:6px;
+                     color:var(--muted); font-size:12px; cursor:pointer; }
+
+  table {
+    width:100%; border-collapse:collapse;
+    background:var(--surface); border-radius:var(--radius);
+    overflow:hidden; border:1px solid var(--border);
+  }
+  thead th {
+    background:#1c2128; color:var(--muted);
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    padding:10px 14px; text-align:left; border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  tbody tr { border-bottom:1px solid var(--border); transition:background .1s; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:#1c2128; }
+  tbody td { padding:10px 14px; vertical-align:top; }
+
+  .row-article2 { border-top: 1px dashed var(--border) !important; }
+  .row-article2 .cell-older { opacity:0.65; }
+  .row-flagged  { background:rgba(239,68,68,.06); }
+  .row-nopost   { opacity:.55; }
+  .no-post      { color:var(--muted); font-style:italic; }
+  .muted        { color:var(--muted); }
+  .td-team      { min-width:140px; }
+  .td-strategy  { max-width:200px; color:var(--muted); font-size:12px; }
+  .td-changes   { max-width:160px; color:var(--muted); font-size:12px; }
+
+  .team-link    { font-weight:600; color:var(--text); }
+  .team-link:hover { color:var(--accent); }
+
+  .badge {
+    display:inline-block; border-radius:4px;
+    padding:1px 6px; font-size:10px; font-weight:700;
+    color:#fff; vertical-align:middle; margin-right:3px;
+  }
+  .asset-pill   { margin-bottom:3px; }
+  .size-tag     { color:var(--muted); font-size:11px; }
+  .price-row    { margin-bottom:2px; white-space:nowrap; }
+  .pair-hint    { color:var(--muted); font-size:10px; margin-right:4px; }
+  .flag-row     { margin-top:4px; display:flex; flex-wrap:wrap; gap:4px; }
+  .flag-chip {
+    background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.35);
+    color:var(--yellow); border-radius:4px;
+    padding:1px 7px; font-size:10px; font-weight:600;
+  }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>📊 Gaika Monitor</h1>
+    <div class="meta">Generated 2026-06-29 20:08 JST · 直近2記事を表示 · ノーレバレッジ外貨取引大会</div>
+    <div class="pill-row">
+      <div class="stat-pill"><span class="num">21</span> posted this week</div>
+      <div class="stat-pill"><span class="num">9</span> active positions</div>
+      <div class="stat-pill"><span class="num">6</span> flagged</div>
+    </div>
+  </div>
+</header>
+
+<div class="charts">
+  <div class="chart-card">
+    <h2>Market Bias (Long vs Short)</h2>
+    <canvas id="dirChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h2>Top Currencies Held</h2>
+    <canvas id="curChart"></canvas>
+  </div>
+  <div class="chart-card">
+    <h2>Post Status</h2>
+    <canvas id="postChart"></canvas>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <div class="controls">
+    <input id="search" type="text" placeholder="チーム名 / 通貨ペアで検索…">
+    <label><input type="checkbox" id="filterFlagged"> フラグのみ</label>
+    <label><input type="checkbox" id="filterPosted"> 今週投稿のみ</label>
+    <label><input type="checkbox" id="filterActive"> ポジションありのみ</label>
+  </div>
+
+  <table id="posTable">
+    <thead>
+      <tr>
+        <th>チーム</th>
+        <th>投稿日時</th>
+        <th>タイトル</th>
+        <th>通貨 / 方向</th>
+        <th>エントリー</th>
+        <th>ターゲット</th>
+        <th>損切り</th>
+        <th>戦略</th>
+        <th>前週比の変化</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr class="" data-team="0"><td class="td-team" rowspan="2"><a href="https://note.com/cool_parrot6215" target="_blank" class="team-link">@cool_parrot6215</a></td><td>06/28 11:26 JST</td><td><a href="https://note.com/cool_parrot6215/n/n819109fa618b" target="_blank">2026年度 第2回 全日本大学「外貨取引」選手権大会　第1週</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">Event-driven only: trade only around pre-scheduled economic events (CPI, employment stats, etc.). No position taken this week — rule was finalised Monday morning.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="0"><td class="cell-older">06/26 17:23 JST</td><td class="cell-older"><a href="https://note.com/cool_parrot6215/n/nf5c5483231f1" target="_blank">サイバーエージェントの成長要因と持続的競争優位性に関する組織・事業戦略的考察</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Non-competition article (business strategy essay).</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="1"><td class="td-team" rowspan="2"><a href="https://note.com/gaikafuru" target="_blank" class="team-link">@gaikafuru</a></td><td>06/25 22:56 JST</td><td><a href="https://note.com/gaikafuru/n/n892344d64461" target="_blank">【大会4日目】まずは言葉から。外貨取引初心者のための基本単語集</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">Learning phase — observing currency movements before entering. No position yet.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="1"><td class="cell-older">06/24 22:45 JST</td><td class="cell-older"><a href="https://note.com/gaikafuru/n/n84461d67b9fe" target="_blank">【大会３日目】私たち、実はドローン飛ばせちゃいます。</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Still observing, no trade. Off-topic post (drone camp at Aoyama Gakuin lab).</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="row-nopost" data-team="2"><td class="td-team" rowspan="2"><a href="https://note.com/kiajobhunting" target="_blank" class="team-link">@kiajobhunting</a></td><td>06/22 19:21 JST</td><td><a href="https://note.com/kiajobhunting/n/n4772194a757d" target="_blank">外貨取引選手権、開幕。初週は様子見と戦略の再確認から</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">No position week 1. USD/JPY ~161. Sceptical of popular &#x27;wait for intervention&#x27; strategy. Plans event-driven entry when conditions improve.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="2"><td class="cell-older">06/06 18:16 JST</td><td class="cell-older"><a href="https://note.com/kiajobhunting/n/n3dc1513c2863" target="_blank">文学部が挑む全日本大学「外貨取引」選手権　データと理論の隙間を埋める総合知の視点</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Pre-competition strategy essay.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="3"><td class="td-team" rowspan="2"><a href="https://note.com/gakusei_kangae" target="_blank" class="team-link">@gakusei_kangae</a></td><td>06/25 10:17 JST</td><td><a href="https://note.com/gakusei_kangae/n/n207b725e211f" target="_blank">外貨選手権大会1週目</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">Wait. Historic JPY weakness + Sony Bank spreads make profitable entry unlikely this week. Monitoring other participants.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="3"><td class="cell-older">05/28 23:04 JST</td><td class="cell-older"><a href="https://note.com/gakusei_kangae/n/nc92093ba1d02" target="_blank">大学生投資家が実際にやっている！投資初心者のための【完全投資マニュアル】</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Old article (2024) — not competition-related.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="4"><td class="td-team" rowspan="2"><a href="https://note.com/masashi_uclab" target="_blank" class="team-link">@masashi_uclab</a></td><td>06/27 14:20 JST</td><td><a href="https://note.com/masashi_uclab/n/nbe2021745360" target="_blank">大外取 with ClaudeCode!</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">AI system: ML model analyses rates + Nikkei + gold; Claude agent decides buy/no-buy hourly. Week 1: AI judged intervention risk too high — no trade.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="4"><td class="cell-older">06/26 18:09 JST</td><td class="cell-older"><a href="https://note.com/masashi_uclab/n/ncf3f47e13d67" target="_blank">【大会第1週】チームUCLab〜全日本大学外貨取引選手権</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Week 1 progress report. No trades. AI system architecture described.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="5"><td class="td-team" rowspan="2"><a href="https://note.com/keylink_by_kk" target="_blank" class="team-link">@keylink_by_kk</a></td><td>06/29 14:21 JST</td><td><a href="https://note.com/keylink_by_kk/n/n9d43021367e4" target="_blank">第２週:今週は豪ドルの短期トレードにチャレンジ!?</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">Week 2: Watching AUD for short-term entry. Still cash — waiting for post-intervention rebound. Acknowledges no trade = opportunity cost.</td><td class="td-changes">Shifted focus from USD/JPY (week 1) to AUD short-term trade.</td></tr>
+<tr class="row-article2" data-team="5"><td class="cell-older">06/22 09:10 JST</td><td class="cell-older"><a href="https://note.com/keylink_by_kk/n/n5fd14945faae" target="_blank">第1週戦略：歴史的円安水準で、あえて「動かない」という戦い方</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Week 1: Deliberate inaction. USD/JPY ~161 (historic JPY weakness). Two reasons to wait: intervention risk + wanting to observe market structure first.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="row-flagged" data-team="6"><td class="td-team" rowspan="2"><a href="https://note.com/atsuya_044" target="_blank" class="team-link">@atsuya_044</a><div class="flag-row"><span class="flag-chip">⚠ Large Position</span></div></td><td>06/28 03:50 JST</td><td><a href="https://note.com/atsuya_044/n/nfeb87c5015bd" target="_blank">第2回 全日本大学外貨取引選手権 1週目</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>EUR/JPY</strong> <span class="size-tag">100%</span></div></td><td><div class="price-row"><span class="pair-hint">EUR/JPY</span> 180.00</div></td><td><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div></td><td class="td-strategy">All-in EUR/JPY on 6/22. EUR/JPY had pulled back to early 180s — expected bounce. Writing from Dallas watching 2026 World Cup.</td><td class="td-changes">Week 1: -minus result. EUR did not rebound as expected.</td></tr>
+<tr class="row-article2" data-team="6"><td class="cell-older">06/20 00:28 JST</td><td class="cell-older"><a href="https://note.com/atsuya_044/n/n2c553ed529ea" target="_blank">第2回 全日本大学「外貨取引」選手権 に向けて</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Pre-competition entry post.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="7"><td class="td-team" rowspan="2"><a href="https://note.com/joyful_turtle486" target="_blank" class="team-link">@joyful_turtle486</a></td><td>06/28 08:41 JST</td><td><a href="https://note.com/joyful_turtle486/n/n66c7d4875384" target="_blank">第2回 全日本大学「外貨取引」選手権大会 第1週最終報告</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>USD/JPY</strong> <span class="size-tag">40%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>EUR/JPY</strong> <span class="size-tag">20%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>AUD/JPY</strong> <span class="size-tag">10%</span></div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="td-strategy">USD-centric diversified long. Week 1 result: USD positive (USD continued strong); EUR and AUD negative. Watching 6/29 retail sales data.</td><td class="td-changes">Week-end: EUR started recovering at the close.</td></tr>
+<tr class="row-article2" data-team="7"><td class="cell-older">06/27 08:37 JST</td><td class="cell-older"><a href="https://note.com/joyful_turtle486/n/n1dd91c13f7c4" target="_blank">第2回 全日本大学「外貨取引」選手権大会 第1週</a></td><td class="cell-older"><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>USD/JPY</strong> <span class="size-tag">40%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>EUR/JPY</strong> <span class="size-tag">20%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>AUD/JPY</strong> <span class="size-tag">10%</span></div></td><td class="cell-older"><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="cell-older"><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="cell-older"><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="cell-older" class="td-strategy">Initial allocation: USD 40k, EUR 20k, AUD 10k, JPY 30k (cash reserve). Despite hesitation about selling JPY during JPY weakness.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="8"><td class="td-team" rowspan="2"><a href="https://note.com/kanno_wmori" target="_blank" class="team-link">@kanno_wmori</a></td><td>06/28 21:59 JST</td><td><a href="https://note.com/kanno_wmori/n/n3675f54aad22" target="_blank">転倒(大外取1週目)</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">No trades week 1 — sick with 39°C fever from Monday. Balance unchanged at 100,000 JPY.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="8"><td class="cell-older">06/20 22:58 JST</td><td class="cell-older"><a href="https://note.com/kanno_wmori/n/n5df7a9640f96" target="_blank">漫画みたいな大会に出ることになりました(大外取0週目)</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Entry post. Kyoto University economics 2nd year. No international finance courses taken yet.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="9"><td class="td-team" rowspan="2"><a href="https://note.com/saku03081" target="_blank" class="team-link">@saku03081</a></td><td>06/25 23:17 JST</td><td><a href="https://note.com/saku03081/n/ne5d707264f25" target="_blank">かなり頭悪いサッポロ一番塩のアレンジの記録</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">Non-competition article (ramen recipe). No trading update this week.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="9"><td class="cell-older">03/14 19:55 JST</td><td class="cell-older"><a href="https://note.com/saku03081/n/n0fa707f7f0b8" target="_blank">少しずつ更新していくsakuの自己紹介とプロフィール</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Self-introduction article (old).</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="10"><td class="td-team" rowspan="2"><a href="https://note.com/re_0oji" target="_blank" class="team-link">@re_0oji</a></td><td>06/26 23:28 JST</td><td><a href="https://note.com/re_0oji/n/n09cc155fe101" target="_blank">#2｜初めての取引【大外取week1】</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">First trade article — exact position not extractable from metadata. Predominantly waiting stance. Context: Japan R32 vs Brazil in 2026 WC.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="10"><td class="cell-older">06/24 21:23 JST</td><td class="cell-older"><a href="https://note.com/re_0oji/n/ne8d14caf0390" target="_blank">＃1｜知識ゼロからの外貨取引【大外取week1】</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Learning from zero. USD/JPY at ~161 — shocked by historical JPY weakness. Mostly waiting.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="row-flagged" data-team="11"><td class="td-team" rowspan="2"><a href="https://note.com/yuyu10y" target="_blank" class="team-link">@yuyu10y</a><div class="flag-row"><span class="flag-chip">⚠ Large Position</span></div></td><td>06/26 23:03 JST</td><td><a href="https://note.com/yuyu10y/n/n040af6bd17ec" target="_blank">大外取 第1週</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>EUR/JPY</strong> <span class="size-tag">100%</span></div></td><td><div class="price-row"><span class="pair-hint">EUR/JPY</span> 184.94</div></td><td><div class="price-row"><span class="pair-hint">EUR/JPY</span> 186.00</div></td><td><div class="price-row muted">—</div></td><td class="td-strategy">Bought EUR/JPY at 184.94 (6/22 late night — delayed by phone auth). Identified pullback support on daily chart. Target 186. Spread fee: 83 JPY. Week-end total: 99,788 JPY.</td><td class="td-changes">EUR did not reach 186 target. Still holding.</td></tr>
+<tr class="row-article2" data-team="11"><td class="cell-older">06/23 01:27 JST</td><td class="cell-older"><a href="https://note.com/yuyu10y/n/n2588e820ccd4" target="_blank">🇨🇳上海旅行</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Non-competition article (Shanghai travel).</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="12"><td class="td-team" rowspan="2"><a href="https://note.com/mtk____" target="_blank" class="team-link">@mtk____</a></td><td>06/27 15:55 JST</td><td><a href="https://note.com/mtk____/n/n819eae9e4cbd" target="_blank">＃3｜僕は、優勝か最下位を取ります。【第1週】</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">Week 1 done. Starting forced market participation from next Monday. Title declares &#x27;win or last place&#x27;. Exact position details not in excerpt.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="12"><td class="cell-older">01/16 11:23 JST</td><td class="cell-older"><a href="https://note.com/mtk____/n/n79ac003f67c4" target="_blank">【自己紹介】20歳｜大学生｜はじめてのnote</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Self-introduction (old, Jan 2026).</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="row-flagged" data-team="13"><td class="td-team" rowspan="2"><a href="https://note.com/mafty_navueerin" target="_blank" class="team-link">@mafty_navueerin</a><div class="flag-row"><span class="flag-chip">⚠ Large Position</span></div></td><td>06/28 18:20 JST</td><td><a href="https://note.com/mafty_navueerin/n/nf157d34cfc67" target="_blank">スターマー首相退任でポンド上昇を狙った結果、１０万円が９万９５６０円になった話(大外取第1週)</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>GBP/JPY</strong> <span class="size-tag">100%</span></div></td><td><div class="price-row"><span class="pair-hint">GBP/JPY</span> 213.94</div></td><td><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div></td><td class="td-strategy">All-in GBP/JPY at 213.94. Thesis: Starmer PM resignation → GBP strength. Spread loss on entry. Week-end: 100,000 → 99,560 JPY (-440 JPY).</td><td class="td-changes">First week. Loss on spread + unfavourable price move.</td></tr>
+<tr class="row-article2" data-team="13"><td class="cell-older">06/13 04:01 JST</td><td class="cell-older"><a href="https://note.com/mafty_navueerin/n/n7214f3d5fff4" target="_blank">【SpaceX IPO】奇跡的に3株当選！売るか残すか、狂乱の初日リアルドキュメント</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Non-competition article (SpaceX IPO).</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="14"><td class="td-team" rowspan="2"><a href="https://note.com/kyoichi_osaka" target="_blank" class="team-link">@kyoichi_osaka</a></td><td>06/28 09:58 JST</td><td><a href="https://note.com/kyoichi_osaka/n/naed59c44e295" target="_blank">結果報告（第1週）</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>USD/JPY</strong> <span class="size-tag">25%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>GBP/JPY</strong> <span class="size-tag">15%</span></div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="td-strategy">Week 1 result: USD 25,002 JPY (+), GBP 14,985 JPY (+). Both positions positive. Plans to trade more aggressively week 2.</td><td class="td-changes">Both positions profitable. Increasing aggression next week.</td></tr>
+<tr class="row-article2" data-team="14"><td class="cell-older">06/25 10:20 JST</td><td class="cell-older"><a href="https://note.com/kyoichi_osaka/n/nb316712c110c" target="_blank">第１週｜始動</a></td><td class="cell-older"><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>USD/JPY</strong> <span class="size-tag">25%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>GBP/JPY</strong> <span class="size-tag">15%</span></div></td><td class="cell-older"><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="cell-older"><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="cell-older"><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="cell-older" class="td-strategy">Osaka Pref. Univ. 3rd year. BOJ raised to 1.0% but JPY got weaker (USD/JPY to 161 — worst since Jul 2024). Notes FRB expected to hike again H2.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="row-flagged" data-team="15"><td class="td-team" rowspan="2"><a href="https://note.com/toshiki_naka" target="_blank" class="team-link">@toshiki_naka</a><div class="flag-row"><span class="flag-chip">⚠ Strategy Mismatch</span></div></td><td>06/28 23:21 JST</td><td><a href="https://note.com/toshiki_naka/n/nbe269fbb7a93" target="_blank">第一週：全日本大学外貨取引選手権大会</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>CNY/JPY</strong> <span class="size-tag">20%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>GBP/JPY</strong> <span class="size-tag">20%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>SEK/JPY</strong> <span class="size-tag">10%</span></div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="td-strategy">Follow-the-crowd strategy (buy what most are buying). Result: CNY -200 (stopped out), GBP ±0, SEK -200. Net -400 JPY. Concluded herding doesn&#x27;t work.</td><td class="td-changes">Week 1: -400 JPY total. Strategy abandoned.</td></tr>
+<tr class="row-article2" data-team="15"><td class="cell-older">06/08 21:26 JST</td><td class="cell-older"><a href="https://note.com/toshiki_naka/n/n17092c4f75c7" target="_blank">第0週：全日本大学外貨取引選手権大会</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Pre-competition entry post.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="row-flagged" data-team="16"><td class="td-team" rowspan="2"><a href="https://note.com/tomoro_0726" target="_blank" class="team-link">@tomoro_0726</a><div class="flag-row"><span class="flag-chip">⚠ Large Position</span></div></td><td>06/28 21:43 JST</td><td><a href="https://note.com/tomoro_0726/n/ncf94df4fe6b2" target="_blank">豪ドルに全て賭けろ</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>AUD/JPY</strong> <span class="size-tag">100%</span></div></td><td><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div></td><td class="td-strategy">All-in AUD/JPY. Reasons: (1) bad news priced in, (2) large Japan-Australia rate differential, (3-5) additional bullish factors. Currently losing.</td><td class="td-changes">First week. AUD move against position.</td></tr>
+<tr class="row-article2" data-team="16"><td class="cell-older">06/21 22:34 JST</td><td class="cell-older"><a href="https://note.com/tomoro_0726/n/n9be3f8181302" target="_blank">外貨取引選手権に出場します</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Entry announcement.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="17"><td class="td-team" rowspan="2"><a href="https://note.com/lovely_rue455" target="_blank" class="team-link">@lovely_rue455</a></td><td>06/29 00:30 JST</td><td><a href="https://note.com/lovely_rue455/n/n04e2d881beef" target="_blank">全日本大学「外貨取引選手権」一周目</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">No trade week 1 — afraid of government intervention. Plans to become active. Notes field is split: some waiting, others buying AUD.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="17"><td class="cell-older">06/21 23:18 JST</td><td class="cell-older"><a href="https://note.com/lovely_rue455/n/na69b1c26046a" target="_blank">こんにちは</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Entry/introduction post.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="18"><td class="td-team" rowspan="2"><a href="https://note.com/ionub" target="_blank" class="team-link">@ionub</a></td><td>06/28 22:20 JST</td><td><a href="https://note.com/ionub/n/n52a319c67395" target="_blank">2026年度 第2回 全日本大学外貨取引選手権大会 第一週</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>USD/JPY</strong> <span class="size-tag">5%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>GBP/JPY</strong> <span class="size-tag">5%</span></div><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>AUD/JPY</strong> <span class="size-tag">10%</span></div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div><div class="price-row muted">—</div><div class="price-row muted">—</div></td><td class="td-strategy">Conservative 1-month FX time deposits: USD 5k, GBP 5k, AUD 10k (20% total). Cash 80k held. Rationale: FX rate risk &gt; interest rate benefit at current JPY levels.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="18"><td class="cell-older">06/21 23:49 JST</td><td class="cell-older"><a href="https://note.com/ionub/n/nee4deff20fcd" target="_blank">2026年度 第2回 全日本大学外貨取引選手権大会 参加に際して</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Entry/participation announcement.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="19"><td class="td-team" rowspan="2"><a href="https://note.com/legal_wren2006" target="_blank" class="team-link">@legal_wren2006</a></td><td>06/28 22:10 JST</td><td><a href="https://note.com/legal_wren2006/n/n3eda89e7ff08" target="_blank">第一週活動報告…出遅れました(汗)</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">Market recap: USD/JPY near 162 (heavy at intervention risk); EUR/JPY heavy (EU growth fears + USD strength); GBP uncertain (politics + fiscal). Notes AI vs Human split in competition. Own position not stated in available text.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="19"><td class="cell-older">06/06 22:16 JST</td><td class="cell-older"><a href="https://note.com/legal_wren2006/n/n04520cb4ee19" target="_blank">全日本大学外貨取引選手権大会に参加します</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Entry announcement.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="row-flagged" data-team="20"><td class="td-team" rowspan="2"><a href="https://note.com/nasgor" target="_blank" class="team-link">@nasgor</a><div class="flag-row"><span class="flag-chip">⚠ Large Position</span></div></td><td>06/27 05:32 JST</td><td><a href="https://note.com/nasgor/n/ne24d4ad0c6be" target="_blank">AIに全財産を委ねたら「男に二言はない、ユーロにフルベット」と言われた話</a></td><td><div class="asset-pill"><span class="badge" style="background:#22c55e">LONG</span> <strong>EUR/JPY</strong> <span class="size-tag">100%</span></div></td><td><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div></td><td><div class="price-row muted">—</div></td><td class="td-strategy">Full AI delegation (team: TodAI). AI instructed &#x27;full bet on EUR — a man keeps his word&#x27;. All 100k JPY converted to EUR on AI&#x27;s first call. Humans only allowed to press the app button.</td><td class="td-changes">Opening day trade. No previous week to compare.</td></tr>
+<tr class="row-article2" data-team="20"><td class="cell-older">06/21 16:57 JST</td><td class="cell-older"><a href="https://note.com/nasgor/n/n80658c13aab0" target="_blank">全日本外貨取引選手権大会に出場します</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Entry announcement.</td><td class="cell-older" class="td-changes">—</td></tr>
+<tr class="" data-team="21"><td class="td-team" rowspan="2"><a href="https://note.com/fast_crocus9353" target="_blank" class="team-link">@fast_crocus9353</a></td><td>06/27 14:16 JST</td><td><a href="https://note.com/fast_crocus9353/n/n80215388ee61" target="_blank">【外貨選手権・第1週】私のスタンスは「徹底的な待ち」：日銀1.0%利上げとドル円攻防戦の裏を読む</a></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td><span class="muted">—</span></td><td class="td-strategy">USD/JPY focused. No position — &#x27;thorough waiting&#x27;. Reasons: BOJ hiked to 1.0% but USD/JPY still near 162; government intervention risk high; Sony Bank spread cost advantage only useful with clear directional move.</td><td class="td-changes">—</td></tr>
+<tr class="row-article2" data-team="21"><td class="cell-older">06/19 15:04 JST</td><td class="cell-older"><a href="https://note.com/fast_crocus9353/n/n9707321f7894" target="_blank">全日本大学外貨取引選手権大会に出場します！</a></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older"><span class="muted">—</span></td><td class="cell-older" class="td-strategy">Entry announcement.</td><td class="cell-older" class="td-changes">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+const RAW = {"labels": ["cool_parrot6215", "gaikafuru", "kiajobhunting", "gakusei_kangae", "masashi_uclab", "keylink_by_kk", "atsuya_044", "joyful_turtle486", "kanno_wmori", "saku03081", "re_0oji", "yuyu10y", "mtk____", "mafty_navueerin", "kyoichi_osaka", "toshiki_naka", "tomoro_0726", "lovely_rue455", "ionub", "legal_wren2006", "nasgor", "fast_crocus9353"], "posted": [1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], "directions": {"long": 21, "short": 0, "neutral": 0, "unknown": 0}, "cur_labels": ["EUR/JPY", "USD/JPY", "GBP/JPY", "AUD/JPY", "CNY/JPY", "SEK/JPY"], "cur_data": [5, 5, 5, 4, 1, 1]};
+
+new Chart(document.getElementById('dirChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Long', 'Short', 'Neutral', 'Unknown'],
+    datasets: [{
+      data: [RAW.directions.long, RAW.directions.short,
+             RAW.directions.neutral, RAW.directions.unknown],
+      backgroundColor: ['#22c55e','#ef4444','#94a3b8','#475569'],
+      borderWidth: 0,
+    }]
+  },
+  options: { plugins: { legend: { labels: { color:'#e6edf3', font:{ size:11 } } } } }
+});
+
+new Chart(document.getElementById('curChart'), {
+  type: 'bar',
+  data: {
+    labels: RAW.cur_labels,
+    datasets: [{
+      label: 'Teams',
+      data: RAW.cur_data,
+      backgroundColor: '#58a6ff',
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display:false } },
+    scales: {
+      x: { ticks:{ color:'#8b949e' }, grid:{ color:'#21262d' } },
+      y: { ticks:{ color:'#e6edf3', font:{ size:11 } }, grid:{ display:false } }
+    }
+  }
+});
+
+const postedSum = RAW.posted.reduce((a,b) => a+b, 0);
+new Chart(document.getElementById('postChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['投稿あり', '未投稿'],
+    datasets: [{
+      data: [postedSum, RAW.labels.length - postedSum],
+      backgroundColor: ['#22c55e','#374151'],
+      borderWidth: 0,
+    }]
+  },
+  options: { plugins: { legend: { labels: { color:'#e6edf3', font:{ size:11 } } } } }
+});
+
+const tbody   = document.getElementById('tbody');
+const search  = document.getElementById('search');
+const chkFlag = document.getElementById('filterFlagged');
+const chkPost = document.getElementById('filterPosted');
+const chkActive = document.getElementById('filterActive');
+
+function buildGroups() {
+  const groups = {};
+  for (const row of tbody.querySelectorAll('tr')) {
+    const tid = row.dataset.team;
+    if (!groups[tid]) groups[tid] = [];
+    groups[tid].push(row);
+  }
+  return groups;
+}
+const GROUPS = buildGroups();
+
+function filter() {
+  const q      = search.value.toLowerCase();
+  const flag   = chkFlag.checked;
+  const post   = chkPost.checked;
+  const active = chkActive.checked;
+  for (const [, rows] of Object.entries(GROUPS)) {
+    const first    = rows[0];
+    const text     = rows.map(r => r.textContent).join(' ').toLowerCase();
+    const isFlagged = first.classList.contains('row-flagged');
+    const isNoPost  = first.classList.contains('row-nopost');
+    // "active" = has a non-"—" entry price somewhere
+    const hasEntry  = text.includes('jpy') || text.includes('/');
+    const matchQ      = !q      || text.includes(q);
+    const matchFlag   = !flag   || isFlagged;
+    const matchPost   = !post   || !isNoPost;
+    const matchActive = !active || hasEntry;
+    const hide = !(matchQ && matchFlag && matchPost && matchActive);
+    rows.forEach(r => r.classList.toggle('hidden', hide));
+  }
+}
+
+search.addEventListener('input', filter);
+chkFlag.addEventListener('change', filter);
+chkPost.addEventListener('change', filter);
+chkActive.addEventListener('change', filter);
+</script>
+</body>
+</html>
