@@ -1790,7 +1790,7 @@
         "holdings": [
           {
             "currency": "USD",
-            "amount_jpy": 30000
+            "amount_jpy": 29870
           },
           {
             "currency": "JPY",
@@ -1798,7 +1798,7 @@
           }
         ],
         "intent": "USD買い増し継続、指値未達のため成行で1万円追加",
-        "changes_since_prev": "指値2万円は約定せず、成行で1万円追加購入。NFP後に反落し含み損転換"
+        "changes_since_prev": "指値2万円は約定せず、成行で1万円追加購入。総残高99,870円(検証済み)"
       }
     },
     "https://note.com/gaikafuru/n/n838e095d1515": {
@@ -1952,23 +1952,23 @@
           {
             "from_currency": "JPY",
             "to_currency": "EUR",
-            "rate": 145,
+            "rate": null,
             "amount_from_jpy": 30000,
-            "date": "2026-07-12"
+            "date": "2026-07-11"
           }
         ],
         "holdings": [
           {
             "currency": "EUR",
-            "amount_jpy": 30000
+            "amount_jpy": 29961
           },
           {
             "currency": "JPY",
-            "amount_jpy": 70000
+            "amount_jpy": 70312
           }
         ],
         "intent": "ユーロ反落を捉え3万円買い増し、144円前半への下落時に残り7万円投入予定",
-        "changes_since_prev": "利確後に再度ユーロを3万円分購入、下落継続なら残り7万円を追加投入予定"
+        "changes_since_prev": "利確後に再度ユーロを3万円分購入(検証済み総残高100,273円)、下落継続なら残り7万円を追加投入予定"
       }
     },
     "https://note.com/kiajobhunting/n/n416efb707772": {
@@ -1995,11 +1995,11 @@
         "holdings": [
           {
             "currency": "JPY",
-            "amount_jpy": 100000
+            "amount_jpy": 100312
           }
         ],
         "intent": "含み損から回復したユーロを利確・全額円に戻す",
-        "changes_since_prev": "一時99,500円台まで下落したユーロ全額ポジションを、回復後に利確・円転"
+        "changes_since_prev": "一時99,500円台まで下落したユーロ全額ポジションを、回復後に利確・円転(検証済み総残高100,312円)"
       }
     },
     "https://note.com/kiajobhunting/n/nb2657f235b24": {
@@ -2026,11 +2026,11 @@
         "holdings": [
           {
             "currency": "EUR",
-            "amount_jpy": 100000
+            "amount_jpy": 99850
           }
         ],
         "intent": "金利上昇中で安定通貨と判断しEURに全額シフト、取引は21-24時JST想定",
-        "changes_since_prev": "1週目ノートレードから一転、全額を円→ユーロに変換"
+        "changes_since_prev": "1週目ノートレードから一転、全額(10万円)を円→ユーロに変換(540.48EUR、取引履歴で検証済み)"
       }
     },
     "https://note.com/gakusei_kangae/n/n02508b2fb29a": {
@@ -2051,21 +2051,24 @@
             "to_currency": "USD",
             "rate": 161,
             "amount_from_jpy": 60000,
-            "date": "2026-07-10"
+            "date": "2026-07-02"
+          },
+          {
+            "from_currency": "USD",
+            "to_currency": "JPY",
+            "rate": null,
+            "amount_from_jpy": null,
+            "date": "2026-07-08"
           }
         ],
         "holdings": [
           {
-            "currency": "USD",
-            "amount_jpy": 60000
-          },
-          {
             "currency": "JPY",
-            "amount_jpy": 40000
+            "amount_jpy": 100318
           }
         ],
-        "intent": "161円台でドル6万円分購入、162円の壁と介入警戒で全額投入は回避",
-        "changes_since_prev": "前週の指値執行を経て161円台でドル買い、資金の6割をUSDに配分"
+        "intent": "161円台で購入した6万円分のドルを7/8に60,318円で売却・利確済み、現在は全額円預金",
+        "changes_since_prev": "前週161円台で購入したドルを7/8に売却し318円の利益を確定、資産は全額円(100,318円)に回帰"
       }
     },
     "https://note.com/gakusei_kangae/n/ndfcc8b00dff7": {
@@ -2114,12 +2117,12 @@
         ],
         "holdings": [
           {
-            "currency": "EUR",
-            "amount_jpy": 10000
+            "currency": "USD",
+            "amount_jpy": 89956
           },
           {
-            "currency": "USD",
-            "amount_jpy": 90000
+            "currency": "EUR",
+            "amount_jpy": 9942
           },
           {
             "currency": "JPY",
@@ -2127,7 +2130,7 @@
           }
         ],
         "intent": "AIの介入検出シグナルを受け残り9万円を全額USDに変換、EURは含み損保有継続",
-        "changes_since_prev": "残っていた9万円を全てドルに交換、資金の100%を外貨化(EUR1万+USD9万)"
+        "changes_since_prev": "残っていた9万円を全てドルに交換、資金の100%を外貨化(検証済み: USD89,956+EUR9,942)"
       }
     },
     "https://note.com/masashi_uclab/n/n39e828e0b570": {
@@ -2200,7 +2203,7 @@
         "holdings": [
           {
             "currency": "EUR",
-            "amount_jpy": 10000
+            "amount_jpy": 9937
           },
           {
             "currency": "JPY",
@@ -2208,7 +2211,7 @@
           }
         ],
         "intent": "先週購入したEUR1万円分は含み損、円安継続を見込み保有継続",
-        "changes_since_prev": "先週の1万円ユーロ取引について含み損状況を報告、保有継続"
+        "changes_since_prev": "先週の1万円ユーロ取引について含み損状況を報告(総残高99,937円、検証済み)"
       }
     },
     "https://note.com/masashi_uclab/n/nec7f362871c7": {
@@ -2536,11 +2539,11 @@
         "holdings": [
           {
             "currency": "GBP",
-            "amount_jpy": 100000
+            "amount_jpy": 99840
           }
         ],
         "intent": "上昇トレンド・低手数料と判断し全額を英ポンドに変換",
-        "changes_since_prev": "発熱で休養していた1週目から一転、全額を英ポンドに変換(手数料分マイナススタート)"
+        "changes_since_prev": "発熱で休養していた1週目から一転、全額を英ポンドに変換(手数料分マイナスの99,840円、検証済み)"
       }
     },
     "https://note.com/saku03081/n/n1f7f462d2bf7": {
@@ -2678,19 +2681,19 @@
         "holdings": [
           {
             "currency": "AUD",
-            "amount_jpy": 30000
+            "amount_jpy": 30026
           },
           {
             "currency": "USD",
-            "amount_jpy": 30000
+            "amount_jpy": 30026
           },
           {
             "currency": "JPY",
-            "amount_jpy": 40000
+            "amount_jpy": 40013
           }
         ],
         "intent": "豪ドル3万円・米ドル3万円(平均162.05円)購入、雇用統計後の急落に耐え週末に戻す",
-        "changes_since_prev": "全額円の状態から豪ドル3万円・米ドル3万円を新規購入、雇用統計後の急落で一時90,500円まで下落も戻す"
+        "changes_since_prev": "全額円の状態から豪ドル3万円・米ドル3万円を新規購入、雇用統計後の急落で一時90,500円まで下落も戻す(検証済み総残高100,065円)"
       }
     },
     "https://note.com/re_0oji/n/n1e24414e0968": {
@@ -3076,24 +3079,31 @@
           },
           {
             "from_currency": "JPY",
+            "to_currency": "GBP",
+            "rate": null,
+            "amount_from_jpy": null,
+            "date": "2026-07-01"
+          },
+          {
+            "from_currency": "JPY",
             "to_currency": "CHF",
             "rate": null,
-            "amount_from_jpy": 60013,
+            "amount_from_jpy": null,
             "date": "2026-07-01"
           }
         ],
         "holdings": [
           {
-            "currency": "CHF",
-            "amount_jpy": 85015
+            "currency": "GBP",
+            "amount_jpy": 40156
           },
           {
-            "currency": "GBP",
-            "amount_jpy": 14985
+            "currency": "CHF",
+            "amount_jpy": 60029
           }
         ],
-        "intent": "メインをドル円からスイスフラン円に乗り換え、介入天井のない通貨へフル投下",
-        "changes_since_prev": "米ドルポジションを解消しスイスフランに全額シフト、現金を残さないフル投下方針に転換"
+        "intent": "メインをドル円からスイスフラン円に乗り換え、介入天井のない通貨へフル投下。GBPポジションも積み増し",
+        "changes_since_prev": "米ドルポジションを解消しスイスフランに全額シフト、GBPも積み増し、現金を残さないフル投下方針に転換(検証済み: GBP40,156+CHF60,029)"
       }
     },
     "https://note.com/toshiki_naka/n/na6814922c202": {
@@ -3211,11 +3221,11 @@
         "holdings": [
           {
             "currency": "CAD",
-            "amount_jpy": 99000
+            "amount_jpy": 99940
           }
         ],
         "intent": "豪ドルからカナダドルに乗り換えるも上昇せず後悔、手数料負担にも言及",
-        "changes_since_prev": "保有していた豪ドルをカナダドルに乗り換え。期待したほど上昇せず、手数料負担も自覚"
+        "changes_since_prev": "保有していた豪ドルをカナダドルに乗り換え。期待したほど上昇せず(検証済み総残高99,940円)"
       }
     },
     "https://note.com/tomoro_0726/n/n5d8149651dc3": {
@@ -3234,11 +3244,11 @@
         "holdings": [
           {
             "currency": "AUD",
-            "amount_jpy": 100200
+            "amount_jpy": 100169
           }
         ],
         "intent": "取引なし、豪ドルが含み益に転じ喜びを表明",
-        "changes_since_prev": "取引なし、保有豪ドルが含み益に転換"
+        "changes_since_prev": "取引なし、保有豪ドルが含み益に転換(検証済み総残高100,169円)"
       }
     },
     "https://note.com/tomoro_0726/n/n55b93a31f3fc": {
@@ -3302,7 +3312,7 @@
         "holdings": [
           {
             "currency": "EUR",
-            "amount_jpy": 29500
+            "amount_jpy": 29850
           },
           {
             "currency": "JPY",
@@ -3310,7 +3320,7 @@
           }
         ],
         "intent": "初めての取引としてユーロを3回に分け1万円ずつ購入、その後下落し含み損だが損切りせず保有継続",
-        "changes_since_prev": "ノートレードから一転、ユーロを3回に分けて計3万円購入。購入後下落し含み損状態"
+        "changes_since_prev": "ノートレードから一転、ユーロを3回に分けて計3万円購入。購入後下落し含み損状態(検証済み: 7/12時点で総残高99,850円)"
       }
     },
     "https://note.com/lovely_rue455/n/n2dd2ef3f0b0c": {
@@ -3414,7 +3424,7 @@
         "holdings": [
           {
             "currency": "USD",
-            "amount_jpy": 35000
+            "amount_jpy": 34900
           },
           {
             "currency": "JPY",
@@ -3422,7 +3432,7 @@
           }
         ],
         "intent": "ドルを追加購入し計3.5万円(平均162.08円)、介入リスクを警戒しロット抑制方針",
-        "changes_since_prev": "ドルを1万円追加購入、保有USD計3.5万円(平均取得161.93→162.08円)に"
+        "changes_since_prev": "ドルを1万円追加購入、保有USD計3.5万円に(検証済み総残高99,900円)"
       }
     },
     "https://note.com/legal_wren2006/n/n7b148f41ed70": {
@@ -3463,7 +3473,7 @@
         "holdings": [
           {
             "currency": "USD",
-            "amount_jpy": 25000
+            "amount_jpy": 24890
           },
           {
             "currency": "JPY",
@@ -3471,7 +3481,7 @@
           }
         ],
         "intent": "円安トレンド継続を見込みドルを3回に分け計2.5万円購入(平均161.93円)",
-        "changes_since_prev": "ノートレードの第1週から一転、ドルを3回に分けて計2.5万円分購入"
+        "changes_since_prev": "ノートレードの第1週から一転、ドルを3回に分けて計2.5万円分購入(検証済み総残高99,890円)"
       }
     },
     "https://note.com/nasgor/n/nf2b80b259b1a": {

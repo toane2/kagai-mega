@@ -58,6 +58,8 @@ For each such entry, fill the `analysis` field. Then set `"analyzed": true`.
 - Add context beyond what they explicitly stated
 - Guess rates not written as numbers
 
+**If the body text doesn't state an exact balance/rate** (many participants only show it as an app screenshot — phrases like "結果はこちら", "現在の状況は以下", "総残高は以下になります" with no number following are the tell): check the entry's `images` list and view the image(s) directly (download + Read) before falling back to arithmetic estimates. A screenshot gives the real total; a naive sum of "spent amount = current value" silently drops spread cost and any price movement, which is wrong as soon as the position has moved at all. Only fall back to inference from context when no image is present or none shows the balance.
+
 ### 3. Write updated log
 Save the modified `data/article_log.json` with all analyzed entries filled.
 

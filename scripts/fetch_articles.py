@@ -118,17 +118,46 @@ def strip_html(s: str) -> str:
     return re.sub(r"\s{2,}", " ", s).strip()
 
 
-def fetch_body(url: str) -> tuple[str, str]:
+# Non-content images embedded on every note.com page (icons, logos, profile pics,
+# banners) — excluded so `images` only holds article body screenshots/photos.
+IMAGE_NOISE_PATTERNS = (
+    "/poc-image/", "/profile_", "profile.png", "note-banner", "loading_",
+)
+
+
+def extract_images(html: str) -> list[str]:
+    """
+    Pull embedded content-image URLs (screenshots, photos) from the article HTML.
+    Many participants post their actual balance only as an app screenshot, so the
+    plain-text body alone can be misleading — these URLs let a later analysis pass
+    go view the image directly instead of guessing the number from prose.
+    """
+    urls = re.findall(r'https://assets\.st-note\.com/[^"\\ ]+', html)
+    seen, out = set(), []
+    for u in urls:
+        u = u.split("?")[0]
+        if any(p in u for p in IMAGE_NOISE_PATTERNS):
+            continue
+        if u in seen:
+            continue
+        seen.add(u)
+        out.append(u)
+    return out
+
+
+def fetch_body(url: str) -> tuple[str, str, list[str]]:
     """
     Fetch article body from HTML via window.__NUXT__ string extraction.
-    Returns (body_text, method).
+    Returns (body_text, method, image_urls).
     """
     try:
         r = requests.get(url, headers=HEADERS, timeout=20)
         r.raise_for_status()
         html = r.text
     except Exception as e:
-        return f"(fetch error: {e})", "error"
+        return f"(fetch error: {e})", "error", []
+
+    images = extract_images(html)
 
     # Find the window.__NUXT__ script tag
     scripts = re.findall(r"<script[^>]*>(.*?)</script>", html, re.DOTALL)
@@ -145,7 +174,7 @@ def fetch_body(url: str) -> tuple[str, str]:
                 decoded = raw
             body = strip_html(decoded)
             if len(body) > 100:
-                return body, "nuxt_body"
+                return body, "nuxt_body", images
 
     # Fallback: og:description
     og = re.search(r'property="og:description"\s+content="([^"]+)"', html)
@@ -158,9 +187,9 @@ def fetch_body(url: str) -> tuple[str, str]:
     if jld and len(jld.group(1)) > len(best):
         best = jld.group(1)
     if best:
-        return best, "og_description"
+        return best, "og_description", images
 
-    return "(本文を取得できませんでした)", "none"
+    return "(本文を取得できませんでした)", "none", images
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
@@ -196,7 +225,7 @@ def main():
 
             # New article — fetch body
             time.sleep(DELAY)
-            body, method = fetch_body(url)
+            body, method, images = fetch_body(url)
 
             published = parse_date(pub_date or "")
             this_week = bool(published and published >= cutoff)
@@ -209,6 +238,8 @@ def main():
                 "this_week":  this_week,
                 "body":       body,
                 "body_method": method,
+                "images":     images,  # content screenshots/photos — view these when
+                                       # the body text doesn't state an exact balance
                 "fetched_at": now_iso(),
                 "relevant":   None,   # null = not yet determined
                 "analyzed":   False,
