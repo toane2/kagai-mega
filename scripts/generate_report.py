@@ -184,6 +184,111 @@ def build_chart_data(team_articles: dict) -> str:
     })
 
 
+STARTING_CAPITAL = 100_000
+
+
+def team_timeseries(articles: list) -> list[tuple[str, float]]:
+    """Oldest->newest (post_date, total_jpy) points, one per article that has a
+    stated holdings breakdown. Skips articles with no holdings data (e.g. an
+    unanalyzed stub) rather than guessing a value."""
+    pts = []
+    for a in sorted(articles, key=lambda x: x.get("post_date") or ""):
+        analysis = a.get("analysis") or {}
+        holdings = analysis.get("holdings") or []
+        total, seen = 0.0, False
+        for h in holdings:
+            v = h.get("amount_jpy")
+            if v is not None:
+                total += float(v)
+                seen = True
+        if seen:
+            pts.append((a.get("post_date") or "", total))
+    return pts
+
+
+def sparkline_svg(values: list, w: int = 128, h: int = 34, good: bool = True) -> str:
+    """A minimal inline-SVG sparkline: 2px muted line, end-dot + soft area fill in
+    the status color (good=gain green, bad=loss red), matching the stat-tile trend
+    spec (de-emphasis line, accent endpoint)."""
+    pad = 3
+    vals = values if len(values) > 1 else values * 2
+    lo, hi = min(vals), max(vals)
+    span = (hi - lo) or 1.0
+    n = len(vals)
+    xs = [pad + i * (w - 2 * pad) / (n - 1) for i in range(n)]
+    ys = [h - pad - (v - lo) / span * (h - 2 * pad) for v in vals]
+    line_path = "M" + " L".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    area_path = line_path + f" L{xs[-1]:.1f},{h - pad:.1f} L{xs[0]:.1f},{h - pad:.1f} Z"
+    color = "var(--good)" if good else "var(--bad)"
+    return (
+        f'<svg class="spark" width="{w}" height="{h}" viewBox="0 0 {w} {h}" '
+        f'preserveAspectRatio="none" role="img" aria-label="残高推移">'
+        f'<path d="{area_path}" fill="{color}" opacity="0.12" stroke="none"/>'
+        f'<path d="{line_path}" fill="none" stroke="var(--muted)" stroke-width="2" '
+        f'stroke-linejoin="round" stroke-linecap="round"/>'
+        f'<circle cx="{xs[-1]:.1f}" cy="{ys[-1]:.1f}" r="4" fill="{color}" '
+        f'stroke="var(--bg)" stroke-width="2"/>'
+        f"</svg>"
+    )
+
+
+def build_leaderboard(team_history_full: dict) -> tuple[str, dict]:
+    """Rank teams by current total balance. Returns (rows_html, kpi_stats)."""
+    rows = []
+    for uname, articles in team_history_full.items():
+        pts = team_timeseries(articles)
+        if not pts:
+            continue
+        current = pts[-1][1]
+        delta = current - STARTING_CAPITAL
+        rows.append({
+            "username": uname,
+            "current": current,
+            "delta": delta,
+            "values": [v for _, v in pts],
+            "n_points": len(pts),
+            "history_str": " → ".join(f"{fmt_date(d)}: {v:,.0f}円" for d, v in pts),
+        })
+    rows.sort(key=lambda r: -r["current"])
+
+    max_abs_delta = max((abs(r["delta"]) for r in rows), default=1) or 1
+
+    parts = []
+    for rank, r in enumerate(rows, start=1):
+        is_gain = r["delta"] >= 0
+        bar_pct = min(abs(r["delta"]) / max_abs_delta * 50, 50)
+        bar_side = "pos" if is_gain else "neg"
+        delta_str = f"+{r['delta']:,.0f}" if is_gain else f"{r['delta']:,.0f}"
+        spark = sparkline_svg(r["values"], good=is_gain) if r["n_points"] > 1 else '<span class="spark-none muted">推移データ不足</span>'
+        parts.append(
+            f'<div class="lb-row" data-team-lb="{esc(r["username"])}" title="{esc(r["history_str"])}">'
+            f'<div class="lb-rank">{rank}</div>'
+            f'<a class="lb-team" href="https://note.com/{esc(r["username"])}" target="_blank">@{esc(r["username"])}</a>'
+            f'<div class="lb-spark">{spark}</div>'
+            f'<div class="lb-total">{r["current"]:,.0f}<span class="lb-yen">円</span></div>'
+            f'<div class="lb-deltabar">'
+            f'<div class="lb-deltabar-track">'
+            f'<div class="lb-bar lb-bar-{bar_side}" style="width:{bar_pct:.1f}%"></div>'
+            f'<div class="lb-zero"></div>'
+            f'</div>'
+            f'<div class="lb-delta {"lb-delta-pos" if is_gain else "lb-delta-neg"}">{delta_str}円</div>'
+            f'</div>'
+            f'</div>'
+        )
+
+    n_teams   = len(rows)
+    n_gain    = sum(1 for r in rows if r["delta"] > 0)
+    n_loss    = sum(1 for r in rows if r["delta"] < 0)
+    leader    = rows[0] if rows else None
+    avg_delta = (sum(r["delta"] for r in rows) / n_teams) if n_teams else 0
+
+    kpi = {
+        "n_teams": n_teams, "n_gain": n_gain, "n_loss": n_loss,
+        "leader": leader, "avg_delta": avg_delta,
+    }
+    return "\n".join(parts), kpi
+
+
 def article_override_json(entry: dict) -> str:
     """Return a JSON snippet for the override file for this article."""
     payload = {
@@ -269,9 +374,23 @@ def build_team_row(i: int, username: str, articles: list) -> str:
     return "\n".join(rows)
 
 
-def build_html(team_articles: dict, stats: dict) -> str:
+def build_html(team_articles: dict, stats: dict, team_history_full: dict) -> str:
     now        = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
     chart_data = build_chart_data(team_articles)
+    lb_rows_html, kpi = build_leaderboard(team_history_full)
+
+    leader = kpi["leader"]
+    if leader:
+        leader_sign = "+" if leader["delta"] >= 0 else ""
+        leader_html = (
+            f'<a href="https://note.com/{esc(leader["username"])}" target="_blank">@{esc(leader["username"])}</a>'
+            f' <span class="kpi-sub">({leader_sign}{leader["delta"]:,.0f}円)</span>'
+        )
+    else:
+        leader_html = '<span class="muted">—</span>'
+    avg_delta = kpi["avg_delta"]
+    avg_sign  = "+" if avg_delta >= 0 else ""
+    avg_class = "kpi-pos" if avg_delta >= 0 else "kpi-neg"
 
     rows = []
     for i, (username, articles) in enumerate(team_articles.items()):
@@ -299,6 +418,8 @@ def build_html(team_articles: dict, stats: dict) -> str:
     --muted:   #8b949e;
     --accent:  #58a6ff;
     --yellow:  #f59e0b;
+    --good:    #2ea043;
+    --bad:     #f85149;
     --radius:  8px;
   }}
   * {{ box-sizing:border-box; margin:0; padding:0; }}
@@ -323,6 +444,77 @@ def build_html(team_articles: dict, stats: dict) -> str:
     font-size:12px; display:flex; gap:6px; align-items:center;
   }}
   .stat-pill .num {{ color:var(--accent); font-weight:700; font-size:15px; }}
+
+  /* KPI tiles */
+  .kpi-row {{
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:14px; padding:24px 32px 0;
+  }}
+  @media(max-width:900px) {{ .kpi-row {{ grid-template-columns:1fr 1fr; }} }}
+  .kpi-tile {{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px 16px;
+  }}
+  .kpi-label {{
+    font-size:11px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.06em; margin-bottom:6px;
+  }}
+  .kpi-value {{
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:26px; font-weight:700; letter-spacing:-.5px; line-height:1.15;
+  }}
+  .kpi-value a {{ font-size:16px; font-weight:700; }}
+  .kpi-sub {{ font-size:13px; font-weight:600; }}
+  .kpi-pos {{ color:var(--good); }}
+  .kpi-neg {{ color:var(--bad); }}
+
+  /* Leaderboard */
+  .leaderboard-card {{
+    margin:16px 32px 0; background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:18px 20px 6px;
+  }}
+  .leaderboard-card h2 {{
+    font-size:11px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.08em; margin-bottom:14px;
+  }}
+  .lb-scroll {{ overflow-x:auto; }}
+  .lb-row {{
+    display:grid;
+    grid-template-columns: 26px 140px 136px 108px minmax(160px,1fr);
+    align-items:center; gap:14px; min-width:600px;
+    padding:7px 0; border-bottom:1px solid var(--border);
+  }}
+  .lb-row:last-child {{ border-bottom:none; }}
+  .lb-rank {{ color:var(--muted); font-size:12px; text-align:right; }}
+  .lb-team {{ font-weight:600; color:var(--text); font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+  .lb-team:hover {{ color:var(--accent); }}
+  .lb-spark {{ display:flex; align-items:center; }}
+  .spark {{ display:block; }}
+  .spark-none {{ font-size:10px; }}
+  .lb-total {{
+    font-variant-numeric: tabular-nums; font-size:13px; text-align:right;
+    white-space:nowrap;
+  }}
+  .lb-yen {{ color:var(--muted); font-size:11px; margin-left:1px; }}
+  .lb-deltabar {{ display:flex; align-items:center; gap:10px; min-width:0; }}
+  .lb-deltabar-track {{
+    position:relative; flex:1; height:10px; min-width:60px;
+  }}
+  .lb-zero {{
+    position:absolute; left:50%; top:-3px; bottom:-3px; width:1px;
+    background:var(--border);
+  }}
+  .lb-bar {{
+    position:absolute; top:0; height:10px; border-radius:4px;
+  }}
+  .lb-bar-pos {{ left:50%; background:var(--good); border-radius:0 4px 4px 0; }}
+  .lb-bar-neg {{ right:50%; background:var(--bad); border-radius:4px 0 0 4px; }}
+  .lb-delta {{
+    font-variant-numeric: tabular-nums; font-size:12px; font-weight:600;
+    min-width:78px; text-align:right; white-space:nowrap;
+  }}
+  .lb-delta-pos {{ color:var(--good); }}
+  .lb-delta-neg {{ color:var(--bad); }}
 
   .charts {{
     display:grid; grid-template-columns:1fr 1fr;
@@ -440,6 +632,32 @@ def build_html(team_articles: dict, stats: dict) -> str:
     </div>
   </div>
 </header>
+
+<div class="kpi-row">
+  <div class="kpi-tile">
+    <div class="kpi-label">参加チーム</div>
+    <div class="kpi-value">{kpi["n_teams"]}</div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">現在の首位</div>
+    <div class="kpi-value">{leader_html}</div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">プラス / マイナス</div>
+    <div class="kpi-value"><span class="kpi-pos">{kpi["n_gain"]}</span> <span class="muted" style="font-size:16px">/</span> <span class="kpi-neg">{kpi["n_loss"]}</span></div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">平均損益</div>
+    <div class="kpi-value {avg_class}">{avg_sign}{avg_delta:,.0f}<span class="lb-yen" style="font-size:13px">円</span></div>
+  </div>
+</div>
+
+<div class="leaderboard-card">
+  <h2>順位 — 総残高と推移 (元手 100,000円)</h2>
+  <div class="lb-scroll">
+  {lb_rows_html}
+  </div>
+</div>
 
 <div class="charts">
   <div class="chart-card">
@@ -612,7 +830,10 @@ def main():
         team_articles[uname].sort(
             key=lambda a: a.get("post_date") or "", reverse=True
         )
-        # Show at most 3 per team in the report (most recent)
+    # Full (untruncated) history is needed for the leaderboard's balance-over-time
+    # trend — the detail table below only ever needs the 3 most recent per team.
+    team_history_full = {u: list(arts) for u, arts in team_articles.items()}
+    for uname in team_articles:
         team_articles[uname] = team_articles[uname][:3]
 
     # Stats — only count relevant articles (irrelevant ones are discarded from report)
@@ -640,7 +861,7 @@ def main():
         "total_articles":  total_articles,
     }
 
-    html = build_html(team_articles, stats)
+    html = build_html(team_articles, stats, team_history_full)
     OUTPUT.parent.mkdir(exist_ok=True)
     OUTPUT.write_text(html, encoding="utf-8")
     print(f"Report written -> {OUTPUT}  ({len(teams_list)} teams, {analyzed_count}/{total_articles} analyzed)")

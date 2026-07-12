@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gaika Monitor — 2026-07-12 23:40 JST</title>
+<title>Gaika Monitor — 2026-07-13 00:10 JST</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -14,6 +14,8 @@
     --muted:   #8b949e;
     --accent:  #58a6ff;
     --yellow:  #f59e0b;
+    --good:    #2ea043;
+    --bad:     #f85149;
     --radius:  8px;
   }
   * { box-sizing:border-box; margin:0; padding:0; }
@@ -38,6 +40,77 @@
     font-size:12px; display:flex; gap:6px; align-items:center;
   }
   .stat-pill .num { color:var(--accent); font-weight:700; font-size:15px; }
+
+  /* KPI tiles */
+  .kpi-row {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:14px; padding:24px 32px 0;
+  }
+  @media(max-width:900px) { .kpi-row { grid-template-columns:1fr 1fr; } }
+  .kpi-tile {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px 16px;
+  }
+  .kpi-label {
+    font-size:11px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.06em; margin-bottom:6px;
+  }
+  .kpi-value {
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:26px; font-weight:700; letter-spacing:-.5px; line-height:1.15;
+  }
+  .kpi-value a { font-size:16px; font-weight:700; }
+  .kpi-sub { font-size:13px; font-weight:600; }
+  .kpi-pos { color:var(--good); }
+  .kpi-neg { color:var(--bad); }
+
+  /* Leaderboard */
+  .leaderboard-card {
+    margin:16px 32px 0; background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:18px 20px 6px;
+  }
+  .leaderboard-card h2 {
+    font-size:11px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:.08em; margin-bottom:14px;
+  }
+  .lb-scroll { overflow-x:auto; }
+  .lb-row {
+    display:grid;
+    grid-template-columns: 26px 140px 136px 108px minmax(160px,1fr);
+    align-items:center; gap:14px; min-width:600px;
+    padding:7px 0; border-bottom:1px solid var(--border);
+  }
+  .lb-row:last-child { border-bottom:none; }
+  .lb-rank { color:var(--muted); font-size:12px; text-align:right; }
+  .lb-team { font-weight:600; color:var(--text); font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lb-team:hover { color:var(--accent); }
+  .lb-spark { display:flex; align-items:center; }
+  .spark { display:block; }
+  .spark-none { font-size:10px; }
+  .lb-total {
+    font-variant-numeric: tabular-nums; font-size:13px; text-align:right;
+    white-space:nowrap;
+  }
+  .lb-yen { color:var(--muted); font-size:11px; margin-left:1px; }
+  .lb-deltabar { display:flex; align-items:center; gap:10px; min-width:0; }
+  .lb-deltabar-track {
+    position:relative; flex:1; height:10px; min-width:60px;
+  }
+  .lb-zero {
+    position:absolute; left:50%; top:-3px; bottom:-3px; width:1px;
+    background:var(--border);
+  }
+  .lb-bar {
+    position:absolute; top:0; height:10px; border-radius:4px;
+  }
+  .lb-bar-pos { left:50%; background:var(--good); border-radius:0 4px 4px 0; }
+  .lb-bar-neg { right:50%; background:var(--bad); border-radius:4px 0 0 4px; }
+  .lb-delta {
+    font-variant-numeric: tabular-nums; font-size:12px; font-weight:600;
+    min-width:78px; text-align:right; white-space:nowrap;
+  }
+  .lb-delta-pos { color:var(--good); }
+  .lb-delta-neg { color:var(--bad); }
 
   .charts {
     display:grid; grid-template-columns:1fr 1fr;
@@ -148,13 +221,60 @@
 <header>
   <div>
     <h1>Gaika Monitor</h1>
-    <div class="meta">Generated 2026-07-12 23:40 JST · ノーレバレッジ外貨取引大会 · 105/105 記事分析済</div>
+    <div class="meta">Generated 2026-07-13 00:10 JST · ノーレバレッジ外貨取引大会 · 105/105 記事分析済</div>
     <div class="pill-row">
       <div class="stat-pill"><span class="num">21</span> 今週投稿</div>
       <div class="stat-pill"><span class="num">19</span> ポジションあり</div>
     </div>
   </div>
 </header>
+
+<div class="kpi-row">
+  <div class="kpi-tile">
+    <div class="kpi-label">参加チーム</div>
+    <div class="kpi-value">22</div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">現在の首位</div>
+    <div class="kpi-value"><a href="https://note.com/fast_crocus9353" target="_blank">@fast_crocus9353</a> <span class="kpi-sub">(+10,140円)</span></div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">プラス / マイナス</div>
+    <div class="kpi-value"><span class="kpi-pos">8</span> <span class="muted" style="font-size:16px">/</span> <span class="kpi-neg">12</span></div>
+  </div>
+  <div class="kpi-tile">
+    <div class="kpi-label">平均損益</div>
+    <div class="kpi-value kpi-pos">+365<span class="lb-yen" style="font-size:13px">円</span></div>
+  </div>
+</div>
+
+<div class="leaderboard-card">
+  <h2>順位 — 総残高と推移 (元手 100,000円)</h2>
+  <div class="lb-scroll">
+  <div class="lb-row" data-team-lb="fast_crocus9353" title="06/19 15:04: 100,000円 → 06/27 14:16: 100,000円 → 07/05 16:24: 110,203円 → 07/12 16:02: 110,140円"><div class="lb-rank">1</div><a class="lb-team" href="https://note.com/fast_crocus9353" target="_blank">@fast_crocus9353</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,31.0 L43.7,31.0 L84.3,3.0 L125.0,3.2 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,31.0 L43.7,31.0 L84.3,3.0 L125.0,3.2" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.2" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">110,140<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:50.0%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+10,140円</div></div></div>
+<div class="lb-row" data-team-lb="kanno_wmori" title="06/20 22:58: 100,000円 → 06/28 21:59: 100,000円 → 07/03 00:17: 99,840円 → 07/06 23:58: 100,500円"><div class="lb-rank">2</div><a class="lb-team" href="https://note.com/kanno_wmori" target="_blank">@kanno_wmori</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,24.2 L43.7,24.2 L84.3,31.0 L125.0,3.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,24.2 L43.7,24.2 L84.3,31.0 L125.0,3.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,500<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:2.5%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+500円</div></div></div>
+<div class="lb-row" data-team-lb="gakusei_kangae" title="06/19 11:12: 100,000円 → 06/25 10:17: 100,000円 → 07/05 00:35: 100,000円 → 07/10 18:04: 100,318円"><div class="lb-rank">3</div><a class="lb-team" href="https://note.com/gakusei_kangae" target="_blank">@gakusei_kangae</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,31.0 L43.7,31.0 L84.3,31.0 L125.0,3.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,31.0 L43.7,31.0 L84.3,31.0 L125.0,3.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,318<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:1.6%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+318円</div></div></div>
+<div class="lb-row" data-team-lb="kiajobhunting" title="06/06 18:16: 100,000円 → 06/22 19:21: 100,000円 → 06/30 17:06: 99,850円 → 07/06 18:29: 100,312円 → 07/12 17:44: 100,273円"><div class="lb-rank">4</div><a class="lb-team" href="https://note.com/kiajobhunting" target="_blank">@kiajobhunting</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,21.9 L33.5,21.9 L64.0,31.0 L94.5,3.0 L125.0,5.4 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,21.9 L33.5,21.9 L64.0,31.0 L94.5,3.0 L125.0,5.4" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="5.4" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,273<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:1.3%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+273円</div></div></div>
+<div class="lb-row" data-team-lb="gaikafuru" title="06/16 12:18: 100,000円 → 06/23 22:44: 100,000円 → 06/24 22:45: 100,000円 → 06/25 22:56: 100,000円 → 07/02 21:37: 99,948円 → 07/03 09:55: 100,068円 → 07/06 13:14: 100,173円 → 07/10 17:56: 100,257円"><div class="lb-rank">5</div><a class="lb-team" href="https://note.com/gaikafuru" target="_blank">@gaikafuru</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,26.3 L20.4,26.3 L37.9,26.3 L55.3,26.3 L72.7,31.0 L90.1,20.1 L107.6,10.6 L125.0,3.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,26.3 L20.4,26.3 L37.9,26.3 L55.3,26.3 L72.7,31.0 L90.1,20.1 L107.6,10.6 L125.0,3.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,257<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:1.3%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+257円</div></div></div>
+<div class="lb-row" data-team-lb="kyoichi_osaka" title="06/10 22:38: 100,000円 → 06/25 10:20: 100,000円 → 06/28 09:58: 100,000円 → 07/05 09:21: 100,185円 → 07/12 11:51: 100,202円"><div class="lb-rank">6</div><a class="lb-team" href="https://note.com/kyoichi_osaka" target="_blank">@kyoichi_osaka</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,31.0 L33.5,31.0 L64.0,31.0 L94.5,5.4 L125.0,3.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,31.0 L33.5,31.0 L64.0,31.0 L94.5,5.4 L125.0,3.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,202<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:1.0%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+202円</div></div></div>
+<div class="lb-row" data-team-lb="re_0oji" title="06/15 21:41: 100,000円 → 06/24 21:23: 100,000円 → 06/26 23:28: 100,000円 → 06/30 17:17: 100,013円 → 07/06 17:37: 100,065円 → 07/09 09:19: 100,167円"><div class="lb-rank">7</div><a class="lb-team" href="https://note.com/re_0oji" target="_blank">@re_0oji</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,31.0 L27.4,31.0 L51.8,31.0 L76.2,28.8 L100.6,20.1 L125.0,3.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,31.0 L27.4,31.0 L51.8,31.0 L76.2,28.8 L100.6,20.1 L125.0,3.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,167<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:0.8%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+167円</div></div></div>
+<div class="lb-row" data-team-lb="mtk____" title="06/11 23:00: 100,000円 → 06/24 16:25: 100,000円 → 06/27 15:55: 100,000円 → 07/01 19:45: 100,096円 → 07/05 18:58: 99,916円 → 07/11 20:21: 100,128円"><div class="lb-rank">8</div><a class="lb-team" href="https://note.com/mtk____" target="_blank">@mtk____</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,19.9 L27.4,19.9 L51.8,19.9 L76.2,7.2 L100.6,31.0 L125.0,3.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,19.9 L27.4,19.9 L51.8,19.9 L76.2,7.2 L100.6,31.0 L125.0,3.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,128<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:0.6%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+128円</div></div></div>
+<div class="lb-row" data-team-lb="keylink_by_kk" title="06/06 20:20: 100,000円 → 06/22 09:10: 100,000円 → 06/29 14:21: 100,000円 → 07/02 22:59: 100,000円 → 07/10 15:03: 100,000円"><div class="lb-rank">9</div><a class="lb-team" href="https://note.com/keylink_by_kk" target="_blank">@keylink_by_kk</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,31.0 L33.5,31.0 L64.0,31.0 L94.5,31.0 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,31.0 L33.5,31.0 L64.0,31.0 L94.5,31.0 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,000<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:0.0%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+0円</div></div></div>
+<div class="lb-row" data-team-lb="ionub" title="06/21 23:49: 100,000円 → 06/28 22:20: 100,000円 → 07/05 23:59: 100,000円"><div class="lb-rank">10</div><a class="lb-team" href="https://note.com/ionub" target="_blank">@ionub</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,31.0 L64.0,31.0 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--good)" opacity="0.12" stroke="none"/><path d="M3.0,31.0 L64.0,31.0 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--good)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">100,000<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-pos" style="width:0.0%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-pos">+0円</div></div></div>
+<div class="lb-row" data-team-lb="toshiki_naka" title="06/08 21:26: 100,000円 → 06/28 23:21: 69,600円 → 07/05 01:04: 99,800円 → 07/06 16:46: 99,940円"><div class="lb-rank">11</div><a class="lb-team" href="https://note.com/toshiki_naka" target="_blank">@toshiki_naka</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L43.7,31.0 L84.3,3.2 L125.0,3.1 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L43.7,31.0 L84.3,3.2 L125.0,3.1" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.1" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,940<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:0.3%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-60円</div></div></div>
+<div class="lb-row" data-team-lb="tomoro_0726" title="06/21 22:34: 100,000円 → 06/28 21:43: 100,000円 → 07/05 19:17: 99,900円 → 07/06 14:16: 100,169円 → 07/12 21:10: 99,940円"><div class="lb-rank">12</div><a class="lb-team" href="https://note.com/tomoro_0726" target="_blank">@tomoro_0726</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,20.6 L33.5,20.6 L64.0,31.0 L94.5,3.0 L125.0,26.8 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,20.6 L33.5,20.6 L64.0,31.0 L94.5,3.0 L125.0,26.8" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="26.8" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,940<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:0.3%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-60円</div></div></div>
+<div class="lb-row" data-team-lb="legal_wren2006" title="06/06 22:16: 100,000円 → 06/28 22:10: 100,000円 → 07/05 00:27: 99,890円 → 07/12 11:54: 99,900円"><div class="lb-rank">13</div><a class="lb-team" href="https://note.com/legal_wren2006" target="_blank">@legal_wren2006</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L43.7,3.0 L84.3,31.0 L125.0,28.5 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L43.7,3.0 L84.3,31.0 L125.0,28.5" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="28.5" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,900<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:0.5%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-100円</div></div></div>
+<div class="lb-row" data-team-lb="masashi_uclab" title="06/09 13:57: 100,000円 → 06/26 18:09: 100,000円 → 06/27 14:20: 100,000円 → 07/03 01:29: 100,000円 → 07/05 19:35: 99,937円 → 07/08 18:19: 100,000円 → 07/10 15:38: 100,000円 → 07/12 12:20: 99,898円"><div class="lb-rank">14</div><a class="lb-team" href="https://note.com/masashi_uclab" target="_blank">@masashi_uclab</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L20.4,3.0 L37.9,3.0 L55.3,3.0 L72.7,20.3 L90.1,3.0 L107.6,3.0 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L20.4,3.0 L37.9,3.0 L55.3,3.0 L72.7,20.3 L90.1,3.0 L107.6,3.0 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,898<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:0.5%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-102円</div></div></div>
+<div class="lb-row" data-team-lb="lovely_rue455" title="06/12 13:16: 100,000円 → 06/21 23:18: 100,000円 → 06/29 00:30: 100,000円 → 07/05 01:02: 100,000円 → 07/10 15:39: 99,850円"><div class="lb-rank">15</div><a class="lb-team" href="https://note.com/lovely_rue455" target="_blank">@lovely_rue455</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L33.5,3.0 L64.0,3.0 L94.5,3.0 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L33.5,3.0 L64.0,3.0 L94.5,3.0 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,850<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:0.7%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-150円</div></div></div>
+<div class="lb-row" data-team-lb="joyful_turtle486" title="06/11 14:54: 100,000円 → 06/27 08:37: 100,000円 → 06/28 08:41: 100,000円 → 07/05 16:23: 93,426円 → 07/05 16:29: 93,426円 → 07/12 17:20: 99,847円"><div class="lb-rank">16</div><a class="lb-team" href="https://note.com/joyful_turtle486" target="_blank">@joyful_turtle486</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L27.4,3.0 L51.8,3.0 L76.2,31.0 L100.6,31.0 L125.0,3.7 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L27.4,3.0 L51.8,3.0 L76.2,31.0 L100.6,31.0 L125.0,3.7" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="3.7" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,847<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:0.8%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-153円</div></div></div>
+<div class="lb-row" data-team-lb="nasgor" title="06/21 16:57: 100,000円 → 06/27 05:32: 100,000円 → 07/04 05:07: 99,748円"><div class="lb-rank">17</div><a class="lb-team" href="https://note.com/nasgor" target="_blank">@nasgor</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L64.0,3.0 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L64.0,3.0 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,748<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:1.2%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-252円</div></div></div>
+<div class="lb-row" data-team-lb="atsuya_044" title="06/20 00:28: 100,000円 → 06/28 03:50: 99,303円 → 07/05 18:32: 99,074円 → 07/12 13:44: 99,701円"><div class="lb-rank">18</div><a class="lb-team" href="https://note.com/atsuya_044" target="_blank">@atsuya_044</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L43.7,24.1 L84.3,31.0 L125.0,12.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L43.7,24.1 L84.3,31.0 L125.0,12.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="12.0" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,701<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:1.5%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-299円</div></div></div>
+<div class="lb-row" data-team-lb="mafty_navueerin" title="06/11 13:31: 100,000円 → 06/28 18:20: 99,560円 → 07/05 16:15: 99,560円 → 07/12 17:42: 99,668円"><div class="lb-rank">19</div><a class="lb-team" href="https://note.com/mafty_navueerin" target="_blank">@mafty_navueerin</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L43.7,31.0 L84.3,31.0 L125.0,24.1 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L43.7,31.0 L84.3,31.0 L125.0,24.1" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="24.1" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,668<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:1.6%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-332円</div></div></div>
+<div class="lb-row" data-team-lb="cool_parrot6215" title="06/06 23:27: 100,000円 → 06/28 11:26: 100,002円 → 07/05 13:16: 99,870円 → 07/12 17:21: 99,364円"><div class="lb-rank">20</div><a class="lb-team" href="https://note.com/cool_parrot6215" target="_blank">@cool_parrot6215</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.1 L43.7,3.0 L84.3,8.8 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.1 L43.7,3.0 L84.3,8.8 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,364<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:3.1%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-636円</div></div></div>
+<div class="lb-row" data-team-lb="yuyu10y" title="06/09 21:50: 100,000円 → 06/26 23:03: 99,788円 → 07/03 22:56: 99,115円 → 07/11 19:41: 99,100円"><div class="lb-rank">21</div><a class="lb-team" href="https://note.com/yuyu10y" target="_blank">@yuyu10y</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L43.7,9.6 L84.3,30.5 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L43.7,9.6 L84.3,30.5 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,100<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:4.4%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-900円</div></div></div>
+<div class="lb-row" data-team-lb="saku03081" title="03/14 19:55: 100,000円 → 06/12 17:45: 100,000円 → 06/22 11:18: 100,000円 → 07/05 09:57: 99,092円"><div class="lb-rank">22</div><a class="lb-team" href="https://note.com/saku03081" target="_blank">@saku03081</a><div class="lb-spark"><svg class="spark" width="128" height="34" viewBox="0 0 128 34" preserveAspectRatio="none" role="img" aria-label="残高推移"><path d="M3.0,3.0 L43.7,3.0 L84.3,3.0 L125.0,31.0 L125.0,31.0 L3.0,31.0 Z" fill="var(--bad)" opacity="0.12" stroke="none"/><path d="M3.0,3.0 L43.7,3.0 L84.3,3.0 L125.0,31.0" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="125.0" cy="31.0" r="4" fill="var(--bad)" stroke="var(--bg)" stroke-width="2"/></svg></div><div class="lb-total">99,092<span class="lb-yen">円</span></div><div class="lb-deltabar"><div class="lb-deltabar-track"><div class="lb-bar lb-bar-neg" style="width:4.5%"></div><div class="lb-zero"></div></div><div class="lb-delta lb-delta-neg">-908円</div></div></div>
+  </div>
+</div>
 
 <div class="charts">
   <div class="chart-card">
