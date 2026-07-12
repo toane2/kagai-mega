@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(PYTHONIOENCODING=utf-8 python scripts/fetch_articles.py)",
+      "Bash(pip install *)"
     ]
   }
 }
