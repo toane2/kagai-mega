@@ -47,6 +47,8 @@ from pathlib import Path
 from datetime import datetime, timezone, timedelta
 import html as html_mod
 
+import fx_rates
+
 LOG       = Path("data/article_log.json")
 OVERRIDES = Path("data/overrides.json")
 OUTPUT    = Path("output/report.html")
@@ -206,6 +208,46 @@ def team_timeseries(articles: list) -> list[tuple[str, float]]:
     return pts
 
 
+def latest_snapshot(articles: list) -> tuple[str | None, list | None]:
+    """(post_date, holdings) of the team's most recent article that states
+    a holdings breakdown, or (None, None) if none exists."""
+    for a in sorted(articles, key=lambda x: x.get("post_date") or "", reverse=True):
+        analysis = a.get("analysis") or {}
+        holdings = analysis.get("holdings") or []
+        if any(h.get("amount_jpy") is not None for h in holdings):
+            return a.get("post_date"), holdings
+    return None, None
+
+
+def mark_to_market(snapshot_date: str | None, holdings: list) -> float:
+    """Re-value a self-reported holdings snapshot at today's FX rates.
+
+    A team's last article can be days old; showing its raw JPY total as
+    "current balance" silently ignores every rate move since then. For
+    each non-JPY holding we back out the currency units implied by the
+    rate on the snapshot's date, then re-price those units at today's
+    rate. Falls back to the raw reported amount per-currency if a rate
+    can't be found (offline, unknown currency)."""
+    snap_date = (snapshot_date or "").split("T")[0] or None
+    total = 0.0
+    for h in holdings:
+        amt = h.get("amount_jpy")
+        if amt is None:
+            continue
+        amt = float(amt)
+        cur = (h.get("currency") or "").upper()
+        if cur in ("", "JPY"):
+            total += amt
+            continue
+        r_then = fx_rates.get_rate(snap_date, cur)
+        r_now = fx_rates.get_rate(None, cur)
+        if r_then and r_now:
+            total += amt / r_then * r_now
+        else:
+            total += amt
+    return total
+
+
 def sparkline_svg(values: list, w: int = 128, h: int = 34, good: bool = True) -> str:
     """A minimal inline-SVG sparkline: 2px muted line, end-dot + soft area fill in
     the status color (good=gain green, bad=loss red), matching the stat-tile trend
@@ -239,15 +281,21 @@ def build_leaderboard(team_history_full: dict) -> tuple[str, dict]:
         pts = team_timeseries(articles)
         if not pts:
             continue
-        current = pts[-1][1]
-        delta = current - STARTING_CAPITAL
+        snap_date, snap_holdings = latest_snapshot(articles)
+        reported = pts[-1][1]
+        current = mark_to_market(snap_date, snap_holdings) if snap_holdings else reported
+        previous = pts[-2][1] if len(pts) > 1 else STARTING_CAPITAL
+        delta = current - previous
+        history_str = " → ".join(f"{fmt_date(d)}: {v:,.0f}円" for d, v in pts)
+        if abs(current - reported) >= 1:
+            history_str += f" ・ 本日レート換算: {current:,.0f}円 (記事時点 {fmt_date(snap_date)}: {reported:,.0f}円)"
         rows.append({
             "username": uname,
             "current": current,
             "delta": delta,
             "values": [v for _, v in pts],
             "n_points": len(pts),
-            "history_str": " → ".join(f"{fmt_date(d)}: {v:,.0f}円" for d, v in pts),
+            "history_str": history_str,
         })
     rows.sort(key=lambda r: -r["current"])
 
@@ -864,6 +912,7 @@ def main():
     html = build_html(team_articles, stats, team_history_full)
     OUTPUT.parent.mkdir(exist_ok=True)
     OUTPUT.write_text(html, encoding="utf-8")
+    fx_rates.flush()
     print(f"Report written -> {OUTPUT}  ({len(teams_list)} teams, {analyzed_count}/{total_articles} analyzed)")
 
 
