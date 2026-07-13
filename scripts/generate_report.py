@@ -2,44 +2,19 @@
 generate_report.py  —  Gaika Monitor HTML report
 =================================================
 Reads:
-  data/article_log.json   — persistent article log (managed by fetch_articles.py + analysis)
-  data/overrides.json     — manual corrections / image-based additions
+  data/article_log.json    — persistent article log (managed by fetch_articles.py + analysis)
+  data/overrides.json      — manual corrections (edit_server.py writes the log directly;
+                             this file remains for ad-hoc patches)
+  data/team_profiles.json  — per-team tendency/thinking-process profiles
 
 Writes:
   output/report.html
 
-Article log entry schema:
-{
-  "url":         str,
-  "username":    str,
-  "title":       str,
-  "post_date":   str (ISO 8601),
-  "this_week":   bool,
-  "body":        str,
-  "body_method": str,
-  "fetched_at":  str,
-  "relevant":    bool | null,   # null = unanalyzed; false = discard from report
-  "analyzed":    bool,
-  "analysis": {
-    "trades": [
-      {
-        "from_currency": str,
-        "to_currency":   str,
-        "rate":          float | null,  # exact rate stated in article
-        "amount_from_jpy": float | null,
-        "date":          str | null
-      }
-    ],
-    "holdings": [
-      {
-        "currency":   str,
-        "amount_jpy": float | null   # null if not stated
-      }
-    ],
-    "intent":              str | null,   # 1-2 phrase summary
-    "changes_since_prev":  str | null    # set on articles after the first for a team
-  }
-}
+Design: the report is built for *reading opponents*, not archiving posts.
+One leaderboard for standings, then one card per team carrying their
+trading style, tendency (thinking process), what to watch for, current
+holdings, and their latest move. Full article history lives in the log
+and the edit server, not here.
 """
 
 import json
@@ -51,24 +26,45 @@ import fx_rates
 
 LOG       = Path("data/article_log.json")
 OVERRIDES = Path("data/overrides.json")
+PROFILES  = Path("data/team_profiles.json")
 OUTPUT    = Path("output/report.html")
 
 JST = timezone(timedelta(hours=9))
+COMPETITION_START = datetime(2026, 6, 22, tzinfo=JST)
+STARTING_CAPITAL = 100_000
 
+TEAMS = [
+    "cool_parrot6215", "gaikafuru", "kiajobhunting", "gakusei_kangae",
+    "masashi_uclab", "keylink_by_kk", "atsuya_044", "joyful_turtle486",
+    "kanno_wmori", "saku03081", "re_0oji", "yuyu10y", "mtk____",
+    "mafty_navueerin", "kyoichi_osaka", "toshiki_naka", "tomoro_0726",
+    "lovely_rue455", "ionub", "legal_wren2006", "nasgor", "fast_crocus9353",
+    "suppera",
+]
+
+OWN_TEAM = "suppera"   # highlighted so our own position stands out
+
+# Validated dark categorical palette (dataviz reference, ≥3:1 on #1a1a19).
+# Fixed slot order by prominence in this competition; every chip also carries
+# the currency code as text, so color never works alone.
 CURRENCY_COLOR = {
-    "USD": "#3b82f6",
-    "EUR": "#8b5cf6",
-    "GBP": "#ec4899",
-    "AUD": "#f59e0b",
-    "CNY": "#ef4444",
-    "CHF": "#10b981",
-    "SEK": "#6366f1",
-    "NZD": "#14b8a6",
-    "CAD": "#f97316",
-    "HKD": "#84cc16",
-    "ZAR": "#a78bfa",
-    "JPY": "#64748b",
+    "USD": "#3987e5",   # blue
+    "EUR": "#9085e9",   # violet
+    "GBP": "#d55181",   # magenta
+    "AUD": "#c98500",   # yellow
+    "CHF": "#199e70",   # aqua
+    "CAD": "#d95926",   # orange
+    "NZD": "#008300",   # green
+    "CNY": "#e66767",   # red
 }
+NEUTRAL_CURRENCY = "#898781"   # JPY cash + anything beyond the 8 slots
+
+GOOD = "#0ca30c"
+BAD  = "#d03b3b"
+
+
+def cur_color(cur: str) -> str:
+    return CURRENCY_COLOR.get((cur or "").upper(), NEUTRAL_CURRENCY)
 
 
 def esc(s) -> str:
@@ -79,8 +75,7 @@ def fmt_date(s) -> str:
     if not s:
         return "—"
     try:
-        dt = datetime.fromisoformat(s).astimezone(JST)
-        return dt.strftime("%m/%d %H:%M")
+        return datetime.fromisoformat(s).astimezone(JST).strftime("%m/%d")
     except Exception:
         return str(s)
 
@@ -89,114 +84,19 @@ def fmt_jpy(v) -> str:
     if v is None:
         return ""
     try:
-        return f"{int(float(v)):,}円"
+        return f"{int(float(v)):,}"
     except Exception:
         return str(v)
 
 
-def fmt_rate(r) -> str:
-    if r is None:
-        return ""
-    try:
-        f = float(r)
-        if f >= 100:
-            return f"{f:.2f}"
-        elif f >= 10:
-            return f"{f:.4f}"
-        else:
-            return f"{f:.5f}"
-    except Exception:
-        return str(r)
-
-
-def currency_chip(cur: str, amount_jpy=None) -> str:
-    color = CURRENCY_COLOR.get(cur.upper(), "#94a3b8")
-    amount_str = f" <span class='chip-amt'>{fmt_jpy(amount_jpy)}</span>" if amount_jpy else ""
-    return f'<span class="cur-chip" style="border-color:{color};color:{color}">{esc(cur)}{amount_str}</span>'
-
-
-def trade_summary(trades: list) -> str:
-    if not trades:
-        return '<span class="muted">—</span>'
-    parts = []
-    for t in trades:
-        fc   = esc(t.get("from_currency", "?"))
-        tc   = esc(t.get("to_currency", "?"))
-        rate = fmt_rate(t.get("rate"))
-        amt  = t.get("amount_from_jpy")
-        date = esc(t.get("date") or "")
-
-        rate_str = f" @ <span class='trade-rate'>{rate}</span>" if rate else ""
-        amt_str  = f" ({fmt_jpy(amt)})" if amt else ""
-        date_str = f"<span class='trade-date'>{date}</span> " if date else ""
-        fc_color = CURRENCY_COLOR.get(fc.upper(), "#94a3b8")
-        tc_color = CURRENCY_COLOR.get(tc.upper(), "#94a3b8")
-        parts.append(
-            f'<div class="trade-row">'
-            f'{date_str}'
-            f'<span style="color:{fc_color}">{fc}</span>'
-            f' → '
-            f'<span style="color:{tc_color}">{tc}</span>'
-            f'{rate_str}{amt_str}'
-            f'</div>'
-        )
-    return "\n".join(parts)
-
-
-def holdings_display(holdings: list) -> str:
-    if not holdings:
-        return '<span class="muted">—</span>'
-    chips = " ".join(currency_chip(h.get("currency", "?"), h.get("amount_jpy")) for h in holdings)
-    return f'<div class="holdings-row">{chips}</div>'
-
-
-def build_chart_data(team_articles: dict) -> str:
-    """team_articles: {username: [article_entry, ...]}"""
-    currency_counts: dict[str, int] = {}
-    trade_counts: dict[str, int] = {}
-
-    for username, articles in team_articles.items():
-        seen_currencies: set = set()
-        team_trades = 0
-        for art in articles:
-            analysis = art.get("analysis") or {}
-            for h in analysis.get("holdings", []):
-                cur = h.get("currency", "")
-                if cur and cur.upper() != "JPY":
-                    seen_currencies.add(cur.upper())
-            team_trades += len(analysis.get("trades", []))
-        for cur in seen_currencies:
-            currency_counts[cur] = currency_counts.get(cur, 0) + 1
-        trade_counts[username] = team_trades
-
-    top_currencies = sorted(currency_counts.items(), key=lambda x: -x[1])[:8]
-    cur_labels = [c[0] for c in top_currencies]
-    cur_data   = [c[1] for c in top_currencies]
-    cur_colors = [CURRENCY_COLOR.get(c, "#94a3b8") for c in cur_labels]
-
-    team_labels  = list(trade_counts.keys())
-    team_trades  = [trade_counts[u] for u in team_labels]
-
-    return json.dumps({
-        "cur_labels":  cur_labels,
-        "cur_data":    cur_data,
-        "cur_colors":  cur_colors,
-        "team_labels": team_labels,
-        "team_trades": team_trades,
-    })
-
-
-STARTING_CAPITAL = 100_000
-
+# ── Balance history ────────────────────────────────────────────────────────────
 
 def team_timeseries(articles: list) -> list[tuple[str, float]]:
-    """Oldest->newest (post_date, total_jpy) points, one per article that has a
-    stated holdings breakdown. Skips articles with no holdings data (e.g. an
-    unanalyzed stub) rather than guessing a value."""
+    """Oldest->newest (post_date, total_jpy), one point per article that states
+    a holdings breakdown."""
     pts = []
     for a in sorted(articles, key=lambda x: x.get("post_date") or ""):
-        analysis = a.get("analysis") or {}
-        holdings = analysis.get("holdings") or []
+        holdings = (a.get("analysis") or {}).get("holdings") or []
         total, seen = 0.0, False
         for h in holdings:
             v = h.get("amount_jpy")
@@ -209,25 +109,17 @@ def team_timeseries(articles: list) -> list[tuple[str, float]]:
 
 
 def latest_snapshot(articles: list) -> tuple[str | None, list | None]:
-    """(post_date, holdings) of the team's most recent article that states
-    a holdings breakdown, or (None, None) if none exists."""
     for a in sorted(articles, key=lambda x: x.get("post_date") or "", reverse=True):
-        analysis = a.get("analysis") or {}
-        holdings = analysis.get("holdings") or []
+        holdings = (a.get("analysis") or {}).get("holdings") or []
         if any(h.get("amount_jpy") is not None for h in holdings):
             return a.get("post_date"), holdings
     return None, None
 
 
 def mark_to_market(snapshot_date: str | None, holdings: list) -> float:
-    """Re-value a self-reported holdings snapshot at today's FX rates.
-
-    A team's last article can be days old; showing its raw JPY total as
-    "current balance" silently ignores every rate move since then. For
-    each non-JPY holding we back out the currency units implied by the
-    rate on the snapshot's date, then re-price those units at today's
-    rate. Falls back to the raw reported amount per-currency if a rate
-    can't be found (offline, unknown currency)."""
+    """Re-value a self-reported snapshot at today's FX rates (a team's last
+    article can be days old). Falls back per-currency to the reported figure
+    when a rate is unavailable."""
     snap_date = (snapshot_date or "").split("T")[0] or None
     total = 0.0
     for h in holdings:
@@ -241,605 +133,484 @@ def mark_to_market(snapshot_date: str | None, holdings: list) -> float:
             continue
         r_then = fx_rates.get_rate(snap_date, cur)
         r_now = fx_rates.get_rate(None, cur)
-        if r_then and r_now:
-            total += amt / r_then * r_now
-        else:
-            total += amt
+        total += amt / r_then * r_now if (r_then and r_now) else amt
     return total
 
 
-def sparkline_svg(values: list, w: int = 128, h: int = 34, good: bool = True) -> str:
-    """A minimal inline-SVG sparkline: 2px muted line, end-dot + soft area fill in
-    the status color (good=gain green, bad=loss red), matching the stat-tile trend
-    spec (de-emphasis line, accent endpoint)."""
-    pad = 3
+def sparkline_svg(values: list, w: int = 120, h: int = 32, good: bool = True) -> str:
+    """2px muted line + status-colored endpoint dot and soft area fill."""
+    pad = 4
     vals = values if len(values) > 1 else values * 2
     lo, hi = min(vals), max(vals)
     span = (hi - lo) or 1.0
     n = len(vals)
     xs = [pad + i * (w - 2 * pad) / (n - 1) for i in range(n)]
     ys = [h - pad - (v - lo) / span * (h - 2 * pad) for v in vals]
-    line_path = "M" + " L".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
-    area_path = line_path + f" L{xs[-1]:.1f},{h - pad:.1f} L{xs[0]:.1f},{h - pad:.1f} Z"
-    color = "var(--good)" if good else "var(--bad)"
+    line = "M" + " L".join(f"{x:.1f},{y:.1f}" for x, y in zip(xs, ys))
+    area = line + f" L{xs[-1]:.1f},{h - pad:.1f} L{xs[0]:.1f},{h - pad:.1f} Z"
+    color = GOOD if good else BAD
     return (
         f'<svg class="spark" width="{w}" height="{h}" viewBox="0 0 {w} {h}" '
         f'preserveAspectRatio="none" role="img" aria-label="残高推移">'
-        f'<path d="{area_path}" fill="{color}" opacity="0.12" stroke="none"/>'
-        f'<path d="{line_path}" fill="none" stroke="var(--muted)" stroke-width="2" '
+        f'<path d="{area}" fill="{color}" opacity="0.12" stroke="none"/>'
+        f'<path d="{line}" fill="none" stroke="var(--muted)" stroke-width="2" '
         f'stroke-linejoin="round" stroke-linecap="round"/>'
         f'<circle cx="{xs[-1]:.1f}" cy="{ys[-1]:.1f}" r="4" fill="{color}" '
-        f'stroke="var(--bg)" stroke-width="2"/>'
-        f"</svg>"
+        f'stroke="var(--surface)" stroke-width="2"/></svg>'
     )
 
 
-def build_leaderboard(team_history_full: dict) -> tuple[str, dict]:
-    """Rank teams by current total balance. Returns (rows_html, kpi_stats)."""
-    rows = []
-    for uname, articles in team_history_full.items():
-        pts = team_timeseries(articles)
-        if not pts:
+# ── Per-team state ─────────────────────────────────────────────────────────────
+
+def team_state(uname: str, articles: list, profile: dict) -> dict:
+    """Everything one card / leaderboard row needs."""
+    pts = team_timeseries(articles)
+    snap_date, snap_holdings = latest_snapshot(articles)
+    reported = pts[-1][1] if pts else None
+    current = mark_to_market(snap_date, snap_holdings) if snap_holdings else reported
+
+    latest = None   # most recent article with an intent
+    for a in sorted(articles, key=lambda x: x.get("post_date") or "", reverse=True):
+        if (a.get("analysis") or {}).get("intent"):
+            latest = a
+            break
+
+    last_trade = None
+    last_trade_date = ""
+    for a in articles:
+        for t in (a.get("analysis") or {}).get("trades") or []:
+            d = t.get("date") or (a.get("post_date") or "")[:10]
+            if d >= last_trade_date:
+                last_trade_date, last_trade = d, t
+
+    n_trades = sum(len((a.get("analysis") or {}).get("trades") or []) for a in articles)
+
+    now = datetime.now(JST)
+    posted_this_week = any(
+        a.get("post_date") and
+        (now - datetime.fromisoformat(a["post_date"]).astimezone(JST)).days < 7
+        for a in articles
+    )
+
+    return {
+        "username": uname,
+        "articles": articles,
+        "profile": profile,
+        "points": pts,
+        # "current" is the article-stated figure — the number a reader can
+        # verify against the team's own post. Today's-rate conversion is a
+        # separate, clearly-labeled estimate so the report never appears to
+        # contradict the source articles.
+        "current": reported,
+        "delta": (reported - STARTING_CAPITAL) if reported is not None else None,
+        "mtm": current,
+        "snap_date": snap_date,
+        "reported": reported,
+        "holdings": snap_holdings or [],
+        "latest": latest,
+        "last_trade": last_trade,
+        "last_trade_date": last_trade_date,
+        "n_trades": n_trades,
+        "posted_this_week": posted_this_week,
+    }
+
+
+# ── HTML pieces ────────────────────────────────────────────────────────────────
+
+def holdings_chips(holdings: list) -> str:
+    if not holdings:
+        return '<span class="muted">—</span>'
+    order = sorted(holdings, key=lambda h: -(h.get("amount_jpy") or 0))
+    chips = []
+    for h in order:
+        cur = (h.get("currency") or "?").upper()
+        amt = h.get("amount_jpy")
+        if not amt and cur != "JPY":
             continue
-        snap_date, snap_holdings = latest_snapshot(articles)
-        reported = pts[-1][1]
-        current = mark_to_market(snap_date, snap_holdings) if snap_holdings else reported
-        previous = pts[-2][1] if len(pts) > 1 else STARTING_CAPITAL
-        delta = current - previous
-        history_str = " → ".join(f"{fmt_date(d)}: {v:,.0f}円" for d, v in pts)
-        if abs(current - reported) >= 1:
-            history_str += f" ・ 本日レート換算: {current:,.0f}円 (記事時点 {fmt_date(snap_date)}: {reported:,.0f}円)"
-        rows.append({
-            "username": uname,
-            "current": current,
-            "delta": delta,
-            "values": [v for _, v in pts],
-            "n_points": len(pts),
-            "history_str": history_str,
-        })
-    rows.sort(key=lambda r: -r["current"])
-
-    max_abs_delta = max((abs(r["delta"]) for r in rows), default=1) or 1
-
-    parts = []
-    for rank, r in enumerate(rows, start=1):
-        is_gain = r["delta"] >= 0
-        bar_pct = min(abs(r["delta"]) / max_abs_delta * 50, 50)
-        bar_side = "pos" if is_gain else "neg"
-        delta_str = f"+{r['delta']:,.0f}" if is_gain else f"{r['delta']:,.0f}"
-        spark = sparkline_svg(r["values"], good=is_gain) if r["n_points"] > 1 else '<span class="spark-none muted">推移データ不足</span>'
-        parts.append(
-            f'<div class="lb-row" data-team-lb="{esc(r["username"])}" title="{esc(r["history_str"])}">'
-            f'<div class="lb-rank">{rank}</div>'
-            f'<a class="lb-team" href="https://note.com/{esc(r["username"])}" target="_blank">@{esc(r["username"])}</a>'
-            f'<div class="lb-spark">{spark}</div>'
-            f'<div class="lb-total">{r["current"]:,.0f}<span class="lb-yen">円</span></div>'
-            f'<div class="lb-deltabar">'
-            f'<div class="lb-deltabar-track">'
-            f'<div class="lb-bar lb-bar-{bar_side}" style="width:{bar_pct:.1f}%"></div>'
-            f'<div class="lb-zero"></div>'
-            f'</div>'
-            f'<div class="lb-delta {"lb-delta-pos" if is_gain else "lb-delta-neg"}">{delta_str}円</div>'
-            f'</div>'
-            f'</div>'
+        c = cur_color(cur)
+        amt_str = f'<span class="chip-amt">{fmt_jpy(amt)}</span>' if amt is not None else ""
+        chips.append(
+            f'<span class="chip" style="--c:{c}"><span class="chip-dot"></span>{esc(cur)} {amt_str}</span>'
         )
-
-    n_teams   = len(rows)
-    n_gain    = sum(1 for r in rows if r["delta"] > 0)
-    n_loss    = sum(1 for r in rows if r["delta"] < 0)
-    leader    = rows[0] if rows else None
-    avg_delta = (sum(r["delta"] for r in rows) / n_teams) if n_teams else 0
-
-    kpi = {
-        "n_teams": n_teams, "n_gain": n_gain, "n_loss": n_loss,
-        "leader": leader, "avg_delta": avg_delta,
-    }
-    return "\n".join(parts), kpi
+    return "".join(chips) or '<span class="muted">—</span>'
 
 
-def article_override_json(entry: dict) -> str:
-    """Return a JSON snippet for the override file for this article."""
-    payload = {
-        entry["url"]: {
-            "relevant": entry.get("relevant"),
-            "analysis": entry.get("analysis") or {
-                "trades": [],
-                "holdings": [],
-                "intent": None,
-                "changes_since_prev": None
-            }
-        }
-    }
-    return json.dumps(payload, ensure_ascii=False, indent=2)
+def alloc_bar(holdings: list) -> str:
+    """One thin stacked bar showing the current allocation, 2px gaps between
+    segments (spacer rule). Labels live in the chips right above it."""
+    vals = [(h.get("currency", "?").upper(), float(h.get("amount_jpy") or 0))
+            for h in holdings if h.get("amount_jpy")]
+    total = sum(v for _, v in vals)
+    if total <= 0:
+        return ""
+    vals.sort(key=lambda x: -x[1])
+    segs = "".join(
+        f'<div class="alloc-seg" style="flex:{v / total:.4f};background:{cur_color(c)}" title="{esc(c)} {fmt_jpy(v)}円"></div>'
+        for c, v in vals
+    )
+    return f'<div class="alloc">{segs}</div>'
 
 
-def build_team_row(i: int, username: str, articles: list) -> str:
-    """Build all <tr> rows for one team."""
-    if not articles:
-        return (
-            f'<tr data-team="{i}" class="row-nopost">'
-            f'<td class="td-team"><a href="https://note.com/{esc(username)}" target="_blank" class="team-link">@{esc(username)}</a></td>'
-            f'<td colspan="6"><span class="muted">— ログなし —</span></td>'
-            f'</tr>'
-        )
-
-    has_post = any(a.get("this_week") for a in articles)
-    unanalyzed = any(not a.get("analyzed") for a in articles)
-    row_base_class = "" if has_post else "row-nopost"
-
+def leaderboard_rows(states: list) -> str:
+    ranked = [s for s in states if s["current"] is not None]
+    ranked.sort(key=lambda s: -s["current"])
+    max_abs = max((abs(s["delta"]) for s in ranked), default=1) or 1
     rows = []
-    for art_idx, art in enumerate(articles):
-        analysis = art.get("analysis") or {}
-        trades   = analysis.get("trades", [])
-        holdings = analysis.get("holdings", [])
-        intent   = analysis.get("intent", "")
-        changes  = analysis.get("changes_since_prev", "")
-        is_older = art_idx > 0
-
-        post_date   = fmt_date(art.get("post_date"))
-        url         = art.get("url", "")
-        title       = esc(art.get("title") or "—")
-        title_cell  = f'<a href="{esc(url)}" target="_blank">{title}</a>' if url else title
-
-        dim        = ' class="cell-older"' if is_older else ""
-        row_class  = ("row-older " if is_older else row_base_class)
-
-        pending_badge = ' <span class="badge-pending">未分析</span>' if not art.get("analyzed") else ""
-        changes_html  = f'<span class="changes-text">{esc(changes)}</span>' if changes else '<span class="muted">—</span>'
-        intent_html   = esc(intent) if intent else '<span class="muted">—</span>'
-
-        team_part = ""
-        if art_idx == 0:
-            unanalyzed_note = ' <span class="badge-pending">要分析あり</span>' if unanalyzed else ""
-            override_json   = article_override_json(art)
-            team_part = (
-                f'<td class="td-team" rowspan="{len(articles)}">'
-                f'<a href="https://note.com/{esc(username)}" target="_blank" class="team-link">@{esc(username)}</a>'
-                f'{unanalyzed_note}'
-                f'<div class="edit-toggle" onclick="toggleEdit(this)">'
-                f'<span class="edit-btn">✏ override</span>'
-                f'<div class="edit-panel" style="display:none">'
-                f'<div class="edit-hint">Edit <code>data/overrides.json</code> with this key, then re-run <code>generate_report.py</code>.</div>'
-                f'<textarea class="edit-json" rows="10">{esc(override_json)}</textarea>'
-                f'<button onclick="copyEdit(this)">Copy JSON</button>'
-                f'</div>'
-                f'</div>'
-                f'</td>'
-            )
-
+    for rank, s in enumerate(ranked, 1):
+        gain = s["delta"] >= 0
+        pct = min(abs(s["delta"]) / max_abs * 50, 50)
+        delta_str = f"+{s['delta']:,.0f}" if gain else f"{s['delta']:,.0f}"
+        spark = (sparkline_svg([v for _, v in s["points"]], good=gain)
+                 if len(s["points"]) > 1 else '<span class="muted" style="font-size:10px">—</span>')
+        hist = " → ".join(f"{fmt_date(d)}: {v:,.0f}円" for d, v in s["points"])
+        if s["mtm"] is not None and abs(s["mtm"] - s["reported"]) >= 1:
+            hist += f"（参考: 本日レート換算 ≈{s['mtm']:,.0f}円）"
+        style_tag = esc((s["profile"] or {}).get("style", ""))
+        own = " own" if s["username"] == OWN_TEAM else ""
+        own_badge = '<span class="own-badge">自チーム</span>' if own else ""
         rows.append(
-            f'<tr class="{row_class.strip()}" data-team="{i}" data-week="{1 if any(a.get("this_week") for a in articles) else 0}">'
-            f'{team_part}'
-            f'<td{dim}>{post_date}{pending_badge}</td>'
-            f'<td{dim}>{title_cell}</td>'
-            f'<td{dim}>{trade_summary(trades)}</td>'
-            f'<td{dim}>{holdings_display(holdings)}</td>'
-            f'<td{dim} class="td-intent">{intent_html}</td>'
-            f'<td{dim} class="td-changes">{changes_html}</td>'
-            f'</tr>'
+            f'<div class="lb-row{own}" title="{esc(hist)}" onclick="jumpTo(\'{esc(s["username"])}\')">'
+            f'<div class="lb-rank">{rank}</div>'
+            f'<div class="lb-team">@{esc(s["username"])}{own_badge}'
+            f'{f"<span class=lb-style>{style_tag}</span>" if style_tag else ""}</div>'
+            f'<div class="lb-spark">{spark}</div>'
+            f'<div class="lb-total">{s["current"]:,.0f}<span class="unit">円</span>'
+            f'<div class="lb-asof">{fmt_date(s["snap_date"])}時点</div></div>'
+            f'<div class="lb-track"><div class="lb-zero"></div>'
+            f'<div class="lb-bar {"pos" if gain else "neg"}" style="width:{pct:.1f}%"></div></div>'
+            f'<div class="lb-delta {"pos" if gain else "neg"}">{delta_str}円</div>'
+            f'</div>'
         )
-
     return "\n".join(rows)
 
 
-def build_html(team_articles: dict, stats: dict, team_history_full: dict) -> str:
-    now        = datetime.now(JST).strftime("%Y-%m-%d %H:%M JST")
-    chart_data = build_chart_data(team_articles)
-    lb_rows_html, kpi = build_leaderboard(team_history_full)
-
-    leader = kpi["leader"]
-    if leader:
-        leader_sign = "+" if leader["delta"] >= 0 else ""
-        leader_html = (
-            f'<a href="https://note.com/{esc(leader["username"])}" target="_blank">@{esc(leader["username"])}</a>'
-            f' <span class="kpi-sub">({leader_sign}{leader["delta"]:,.0f}円)</span>'
+def team_card(rank: int | None, s: dict) -> str:
+    p = s["profile"] or {}
+    uname = s["username"]
+    gain = (s["delta"] or 0) >= 0
+    if s["current"] is not None:
+        balance = (
+            f'<div class="bal"><span class="bal-num">{s["current"]:,.0f}</span><span class="unit">円</span>'
+            f'<span class="bal-asof">({fmt_date(s["snap_date"])}時点)</span>'
+            f'<span class="bal-delta {"pos" if gain else "neg"}">'
+            f'{"+" if gain else ""}{s["delta"]:,.0f}円</span></div>'
         )
     else:
-        leader_html = '<span class="muted">—</span>'
-    avg_delta = kpi["avg_delta"]
-    avg_sign  = "+" if avg_delta >= 0 else ""
-    avg_class = "kpi-pos" if avg_delta >= 0 else "kpi-neg"
+        balance = '<div class="bal muted">残高データなし</div>'
 
-    rows = []
-    for i, (username, articles) in enumerate(team_articles.items()):
-        rows.append(build_team_row(i, username, articles))
-    rows_html = "\n".join(rows)
+    # Foreign-currency holders keep gaining/losing after their last post;
+    # surface that as a labeled estimate, never as the headline number.
+    mtm_html = ""
+    if s["mtm"] is not None and s["reported"] is not None and abs(s["mtm"] - s["reported"]) >= 1:
+        drift = s["mtm"] - s["reported"]
+        mtm_html = (
+            f'<div class="mtm">記事後のレート変動込みの参考値: ≈{s["mtm"]:,.0f}円 '
+            f'<span class="{"pos" if drift >= 0 else "neg"}">({"+" if drift >= 0 else ""}{drift:,.0f}円)</span></div>'
+        )
 
-    posted   = stats["posted"]
-    active   = stats["active"]
-    analyzed = stats["analyzed"]
-    total    = stats["total_articles"]
+    latest = s["latest"]
+    if latest:
+        move = (
+            f'<div class="latest"><span class="latest-date">{fmt_date(latest.get("post_date"))}</span> '
+            f'<a href="{esc(latest.get("url"))}" target="_blank" class="latest-link">'
+            f'{esc((latest.get("analysis") or {}).get("intent") or "")}</a></div>'
+        )
+    else:
+        move = '<div class="latest muted">投稿からの情報なし</div>'
 
-    return f"""<!DOCTYPE html>
+    t = s["last_trade"]
+    if t:
+        fc, tc = (t.get("from_currency") or "?").upper(), (t.get("to_currency") or "?").upper()
+        amt = t.get("amount_from_jpy")
+        trade = (
+            f'<span class="trade"><span style="color:{cur_color(fc)}">{esc(fc)}</span>'
+            f'<span class="muted">→</span>'
+            f'<span style="color:{cur_color(tc)}">{esc(tc)}</span>'
+            f'{f" {fmt_jpy(amt)}円" if amt else ""}'
+            f'<span class="muted"> ({esc(s["last_trade_date"][5:] if len(s["last_trade_date"]) > 5 else s["last_trade_date"])})</span></span>'
+        )
+    else:
+        trade = '<span class="muted">取引実績なし</span>'
+
+    rank_html = f'<span class="rank">#{rank}</span>' if rank else '<span class="rank muted">–</span>'
+    week_dot = '<span class="fresh" title="今週投稿あり"></span>' if s["posted_this_week"] else ""
+    tendency = esc(p.get("tendency", "")) or '<span class="muted">プロフィール未作成</span>'
+    watch = p.get("watch", "")
+    watch_html = (
+        f'<div class="watch"><span class="watch-label">読み筋</span>{esc(watch)}</div>' if watch else ""
+    )
+    style_tag = esc(p.get("style", ""))
+
+    own = " own" if uname == OWN_TEAM else ""
+    own_badge = '<span class="own-badge">自チーム</span>' if own else ""
+    return f'''
+  <article class="card{own}" id="team-{esc(uname)}" data-name="{esc(uname)} {style_tag}">
+    <header class="card-head">
+      {rank_html}
+      <a class="card-team" href="https://note.com/{esc(uname)}" target="_blank">@{esc(uname)}</a>{own_badge}
+      {week_dot}
+      {f'<span class="style-tag">{style_tag}</span>' if style_tag else ""}
+      {balance}
+    </header>
+    {mtm_html}
+    <div class="chips">{holdings_chips(s["holdings"])}</div>
+    {alloc_bar(s["holdings"])}
+    <p class="tendency">{tendency}</p>
+    {watch_html}
+    <footer class="card-foot">
+      {move}
+      <div class="foot-row">最終取引: {trade}<span class="sep">·</span>取引 {s["n_trades"]}回<span class="sep">·</span>記事 {len(s["articles"])}件</div>
+    </footer>
+  </article>'''
+
+
+def build_html(states: list) -> str:
+    now = datetime.now(JST)
+    week_no = (now - COMPETITION_START).days // 7 + 1
+
+    ranked = [s for s in states if s["current"] is not None]
+    ranked.sort(key=lambda s: -s["current"])
+    rank_of = {s["username"]: i for i, s in enumerate(ranked, 1)}
+    ordered = ranked + [s for s in states if s["current"] is None]
+
+    n_gain = sum(1 for s in ranked if s["delta"] > 0)
+    n_loss = sum(1 for s in ranked if s["delta"] < 0)
+    avg = sum(s["delta"] for s in ranked) / len(ranked) if ranked else 0
+    leader = ranked[0] if ranked else None
+    posted = sum(1 for s in states if s["posted_this_week"])
+
+    leader_html = (
+        f'@{esc(leader["username"])} <span class="kpi-sub {"pos" if leader["delta"] >= 0 else "neg"}">'
+        f'{"+" if leader["delta"] >= 0 else ""}{leader["delta"]:,.0f}円</span>'
+        if leader else "—"
+    )
+
+    cards = "\n".join(team_card(rank_of.get(s["username"]), s) for s in ordered)
+    lb = leaderboard_rows(states)
+
+    return f'''<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gaika Monitor — {now}</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<title>Gaika Monitor — 第{week_no}週</title>
 <style>
   :root {{
-    --bg:      #0d1117;
-    --surface: #161b22;
-    --border:  #21262d;
-    --text:    #e6edf3;
-    --muted:   #8b949e;
-    --accent:  #58a6ff;
-    --yellow:  #f59e0b;
-    --good:    #2ea043;
-    --bad:     #f85149;
-    --radius:  8px;
+    --page:    #0d0d0d;
+    --surface: #1a1a19;
+    --border:  rgba(255,255,255,0.10);
+    --grid:    #2c2c2a;
+    --text:    #ffffff;
+    --text2:   #c3c2b7;
+    --muted:   #898781;
+    --good:    {GOOD};
+    --bad:     {BAD};
+    --accent:  #3987e5;
+    --radius:  10px;
   }}
   * {{ box-sizing:border-box; margin:0; padding:0; }}
   body {{
-    background:var(--bg); color:var(--text);
-    font-family:"SF Mono","Fira Code",ui-monospace,monospace;
-    font-size:13px; line-height:1.6;
+    background:var(--page); color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI","Hiragino Sans","Yu Gothic UI",sans-serif;
+    font-size:13.5px; line-height:1.65; padding-bottom:60px;
   }}
   a {{ color:var(--accent); text-decoration:none; }}
   a:hover {{ text-decoration:underline; }}
+  .muted {{ color:var(--muted); }}
+  .pos {{ color:var(--good); }}
+  .neg {{ color:var(--bad); }}
+  .unit {{ color:var(--muted); font-size:.75em; margin-left:1px; }}
 
-  header {{
-    padding:28px 32px 20px; border-bottom:1px solid var(--border);
-    display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap;
+  header.page {{
+    padding:26px 32px 18px; display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
   }}
-  header h1 {{ font-size:22px; font-weight:700; letter-spacing:-.5px; }}
-  header .meta {{ color:var(--muted); font-size:12px; margin-top:2px; }}
-  .pill-row {{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }}
-  .stat-pill {{
-    background:var(--surface); border:1px solid var(--border);
-    border-radius:20px; padding:4px 14px;
-    font-size:12px; display:flex; gap:6px; align-items:center;
-  }}
-  .stat-pill .num {{ color:var(--accent); font-weight:700; font-size:15px; }}
+  header.page h1 {{ font-size:21px; letter-spacing:-.3px; }}
+  header.page .meta {{ color:var(--muted); font-size:12px; }}
 
-  /* KPI tiles */
-  .kpi-row {{
-    display:grid; grid-template-columns:repeat(4,1fr);
-    gap:14px; padding:24px 32px 0;
+  .kpis {{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:0 32px;
   }}
-  @media(max-width:900px) {{ .kpi-row {{ grid-template-columns:1fr 1fr; }} }}
-  .kpi-tile {{
+  @media(max-width:860px) {{ .kpis {{ grid-template-columns:1fr 1fr; }} }}
+  .kpi {{
     background:var(--surface); border:1px solid var(--border);
-    border-radius:var(--radius); padding:14px 16px;
+    border-radius:var(--radius); padding:12px 16px;
   }}
-  .kpi-label {{
-    font-size:11px; color:var(--muted); text-transform:uppercase;
-    letter-spacing:.06em; margin-bottom:6px;
-  }}
-  .kpi-value {{
-    font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-    font-size:26px; font-weight:700; letter-spacing:-.5px; line-height:1.15;
-  }}
-  .kpi-value a {{ font-size:16px; font-weight:700; }}
-  .kpi-sub {{ font-size:13px; font-weight:600; }}
-  .kpi-pos {{ color:var(--good); }}
-  .kpi-neg {{ color:var(--bad); }}
+  .kpi-label {{ font-size:11px; color:var(--muted); letter-spacing:.05em; }}
+  .kpi-value {{ font-size:22px; font-weight:700; letter-spacing:-.4px; }}
+  .kpi-sub {{ font-size:13px; font-weight:600; margin-left:6px; }}
 
   /* Leaderboard */
-  .leaderboard-card {{
-    margin:16px 32px 0; background:var(--surface); border:1px solid var(--border);
-    border-radius:var(--radius); padding:18px 20px 6px;
+  .lb {{
+    margin:16px 32px; background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px 18px 4px;
   }}
-  .leaderboard-card h2 {{
-    font-size:11px; color:var(--muted); text-transform:uppercase;
-    letter-spacing:.08em; margin-bottom:14px;
-  }}
+  .lb h2 {{ font-size:11px; color:var(--muted); letter-spacing:.08em; margin-bottom:10px; }}
   .lb-scroll {{ overflow-x:auto; }}
   .lb-row {{
-    display:grid;
-    grid-template-columns: 26px 140px 136px 108px minmax(160px,1fr);
-    align-items:center; gap:14px; min-width:600px;
-    padding:7px 0; border-bottom:1px solid var(--border);
+    display:grid; grid-template-columns:24px minmax(150px,220px) 128px 110px minmax(120px,1fr) 84px;
+    gap:12px; align-items:center; min-width:640px;
+    padding:6px 0; border-bottom:1px solid var(--grid); cursor:pointer;
   }}
   .lb-row:last-child {{ border-bottom:none; }}
-  .lb-rank {{ color:var(--muted); font-size:12px; text-align:right; }}
-  .lb-team {{ font-weight:600; color:var(--text); font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
-  .lb-team:hover {{ color:var(--accent); }}
-  .lb-spark {{ display:flex; align-items:center; }}
+  .lb-row:hover {{ background:rgba(255,255,255,0.03); }}
+  .lb-row.own {{ background:rgba(57,135,229,0.10); box-shadow:inset 3px 0 0 var(--accent); }}
+  .lb-row.own:hover {{ background:rgba(57,135,229,0.16); }}
+  .own-badge {{
+    font-size:9.5px; font-weight:700; color:var(--accent);
+    border:1px solid var(--accent); border-radius:4px;
+    padding:0 5px; margin-left:6px; vertical-align:middle; white-space:nowrap;
+  }}
+  .lb-rank {{ color:var(--muted); font-size:12px; text-align:right; font-variant-numeric:tabular-nums; }}
+  .lb-team {{ font-weight:600; font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
+  .lb-style {{ color:var(--muted); font-weight:400; font-size:10.5px; margin-left:6px; }}
+  .lb-total {{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; line-height:1.2; }}
+  .lb-asof {{ color:var(--muted); font-size:9.5px; }}
+  .lb-track {{ position:relative; height:10px; min-width:80px; }}
+  .lb-zero {{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:var(--grid); }}
+  .lb-bar {{ position:absolute; top:1px; height:8px; }}
+  .lb-bar.pos {{ left:50%; background:var(--good); border-radius:0 4px 4px 0; }}
+  .lb-bar.neg {{ right:50%; background:var(--bad); border-radius:4px 0 0 4px; }}
+  .lb-delta {{ font-variant-numeric:tabular-nums; font-size:12px; font-weight:600; text-align:right; white-space:nowrap; }}
   .spark {{ display:block; }}
-  .spark-none {{ font-size:10px; }}
-  .lb-total {{
-    font-variant-numeric: tabular-nums; font-size:13px; text-align:right;
-    white-space:nowrap;
-  }}
-  .lb-yen {{ color:var(--muted); font-size:11px; margin-left:1px; }}
-  .lb-deltabar {{ display:flex; align-items:center; gap:10px; min-width:0; }}
-  .lb-deltabar-track {{
-    position:relative; flex:1; height:10px; min-width:60px;
-  }}
-  .lb-zero {{
-    position:absolute; left:50%; top:-3px; bottom:-3px; width:1px;
-    background:var(--border);
-  }}
-  .lb-bar {{
-    position:absolute; top:0; height:10px; border-radius:4px;
-  }}
-  .lb-bar-pos {{ left:50%; background:var(--good); border-radius:0 4px 4px 0; }}
-  .lb-bar-neg {{ right:50%; background:var(--bad); border-radius:4px 0 0 4px; }}
-  .lb-delta {{
-    font-variant-numeric: tabular-nums; font-size:12px; font-weight:600;
-    min-width:78px; text-align:right; white-space:nowrap;
-  }}
-  .lb-delta-pos {{ color:var(--good); }}
-  .lb-delta-neg {{ color:var(--bad); }}
 
-  .charts {{
-    display:grid; grid-template-columns:1fr 1fr;
-    gap:16px; padding:24px 32px;
+  /* Filter */
+  .controls {{ padding:4px 32px 0; }}
+  .controls input {{
+    background:var(--surface); border:1px solid var(--border); color:var(--text);
+    border-radius:8px; padding:8px 14px; font-size:13px; width:280px; outline:none;
   }}
-  @media(max-width:800px) {{ .charts {{ grid-template-columns:1fr; }} }}
-  .chart-card {{
+  .controls input:focus {{ border-color:var(--accent); }}
+
+  /* Team cards */
+  .cards {{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
+    gap:14px; padding:14px 32px 0;
+  }}
+  .card {{
     background:var(--surface); border:1px solid var(--border);
-    border-radius:var(--radius); padding:16px;
+    border-radius:var(--radius); padding:14px 16px 12px;
+    display:flex; flex-direction:column; gap:8px;
   }}
-  .chart-card h2 {{
-    font-size:11px; color:var(--muted); text-transform:uppercase;
-    letter-spacing:.08em; margin-bottom:12px;
+  .card.own {{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }}
+  .card-head {{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }}
+  .rank {{ color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; min-width:22px; }}
+  .card-team {{ font-weight:700; font-size:14.5px; color:var(--text); }}
+  .card-team:hover {{ color:var(--accent); }}
+  .fresh {{ width:7px; height:7px; border-radius:50%; background:var(--accent); display:inline-block; }}
+  .style-tag {{
+    font-size:10.5px; color:var(--text2); border:1px solid var(--border);
+    border-radius:20px; padding:1px 9px; white-space:nowrap;
   }}
-  .chart-card canvas {{ max-height:220px; }}
+  .bal {{ margin-left:auto; white-space:nowrap; }}
+  .bal-num {{ font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; }}
+  .bal-asof {{ color:var(--muted); font-size:10px; margin-left:4px; }}
+  .bal-delta {{ font-size:12px; font-weight:600; margin-left:7px; }}
+  .mtm {{ font-size:11px; color:var(--muted); }}
 
-  .table-wrap {{ padding:0 32px 40px; overflow-x:auto; }}
-  .controls {{ display:flex; gap:12px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }}
-  .controls input[type=text] {{
-    background:var(--surface); border:1px solid var(--border);
-    color:var(--text); border-radius:6px; padding:7px 12px;
-    font-size:12px; font-family:inherit; outline:none; width:240px;
+  .chips {{ display:flex; flex-wrap:wrap; gap:5px; }}
+  .chip {{
+    display:inline-flex; align-items:center; gap:5px;
+    border:1px solid var(--border); border-radius:6px; padding:1px 8px;
+    font-size:11.5px; font-weight:600; color:var(--text2); white-space:nowrap;
   }}
-  .controls input[type=text]:focus {{ border-color:var(--accent); }}
-  .controls label {{
-    display:flex; align-items:center; gap:6px;
-    color:var(--muted); font-size:12px; cursor:pointer;
+  .chip-dot {{ width:8px; height:8px; border-radius:50%; background:var(--c); }}
+  .chip-amt {{ font-weight:400; color:var(--muted); font-variant-numeric:tabular-nums; }}
+  .alloc {{ display:flex; gap:2px; height:6px; border-radius:3px; overflow:hidden; }}
+  .alloc-seg {{ min-width:3px; }}
+
+  .tendency {{ color:var(--text2); font-size:12.5px; }}
+  .watch {{
+    font-size:12px; color:var(--text2);
+    background:rgba(57,135,229,0.08); border-left:2px solid var(--accent);
+    padding:5px 10px; border-radius:0 6px 6px 0;
+  }}
+  .watch-label {{
+    color:var(--accent); font-weight:700; font-size:10.5px; letter-spacing:.06em;
+    margin-right:8px;
   }}
 
-  table {{
-    width:100%; border-collapse:collapse;
-    background:var(--surface); border-radius:var(--radius);
-    overflow:hidden; border:1px solid var(--border);
-  }}
-  thead th {{
-    background:#1c2128; color:var(--muted);
-    font-size:11px; text-transform:uppercase; letter-spacing:.06em;
-    padding:10px 14px; text-align:left; border-bottom:1px solid var(--border);
-    white-space:nowrap;
-  }}
-  tbody tr {{ border-bottom:1px solid var(--border); transition:background .1s; }}
-  tbody tr:last-child {{ border-bottom:none; }}
-  tbody tr:hover {{ background:#1c2128; }}
-  tbody td {{ padding:10px 14px; vertical-align:top; }}
-
-  .row-older {{ border-top:1px dashed #2d333b !important; }}
-  .row-older .cell-older {{ opacity:.6; }}
-  .row-nopost {{ opacity:.45; }}
-
-  .td-team {{ min-width:140px; max-width:180px; }}
-  .td-intent {{ max-width:200px; color:var(--muted); font-size:12px; }}
-  .td-changes {{ max-width:180px; color:var(--yellow); font-size:12px; }}
-
-  .team-link {{ font-weight:600; color:var(--text); }}
-  .team-link:hover {{ color:var(--accent); }}
-
-  /* Trades */
-  .trade-row {{ margin-bottom:3px; white-space:nowrap; }}
-  .trade-date {{ color:var(--muted); font-size:11px; margin-right:4px; }}
-  .trade-rate {{ color:#22c55e; font-weight:600; }}
-
-  /* Currency chips */
-  .holdings-row {{ display:flex; flex-wrap:wrap; gap:4px; }}
-  .cur-chip {{
-    display:inline-block; border:1px solid; border-radius:4px;
-    padding:1px 7px; font-size:11px; font-weight:600; white-space:nowrap;
-  }}
-  .chip-amt {{ font-weight:400; opacity:.8; margin-left:3px; }}
-
-  /* Override panel */
-  .edit-toggle {{ margin-top:6px; }}
-  .edit-btn {{
-    font-size:10px; color:var(--muted); cursor:pointer;
-    padding:2px 6px; border:1px solid var(--border); border-radius:4px;
-    display:inline-block;
-  }}
-  .edit-btn:hover {{ color:var(--accent); border-color:var(--accent); }}
-  .edit-panel {{ margin-top:6px; }}
-  .edit-hint {{ font-size:10px; color:var(--muted); margin-bottom:4px; line-height:1.5; }}
-  .edit-hint code {{ color:var(--accent); background:#1c2128; padding:0 3px; border-radius:3px; }}
-  .edit-json {{
-    width:100%; background:#0d1117; border:1px solid var(--border);
-    color:var(--text); font-family:inherit; font-size:10px;
-    padding:6px; border-radius:4px; resize:vertical; min-height:120px;
-  }}
-  .edit-panel button {{
-    margin-top:4px; padding:3px 10px; font-size:10px;
-    background:var(--surface); border:1px solid var(--border);
-    color:var(--text); border-radius:4px; cursor:pointer;
-    font-family:inherit;
-  }}
-  .edit-panel button:hover {{ border-color:var(--accent); color:var(--accent); }}
-
-  /* Badges */
-  .badge-pending {{
-    display:inline-block; font-size:9px; font-weight:700;
-    background:rgba(245,158,11,.2); border:1px solid rgba(245,158,11,.4);
-    color:var(--yellow); border-radius:3px; padding:1px 5px;
-    margin-left:4px; vertical-align:middle;
-  }}
-  .changes-text {{ white-space:normal; }}
-  .muted {{ color:var(--muted); }}
+  .card-foot {{ margin-top:auto; padding-top:6px; border-top:1px solid var(--grid); }}
+  .latest {{ font-size:12px; color:var(--text2); }}
+  .latest-date {{ color:var(--muted); font-variant-numeric:tabular-nums; margin-right:2px; }}
+  .latest-link {{ color:var(--text2); }}
+  .latest-link:hover {{ color:var(--accent); }}
+  .foot-row {{ font-size:11px; color:var(--muted); margin-top:3px; }}
+  .trade {{ font-weight:600; font-size:11px; }}
+  .sep {{ margin:0 6px; }}
   .hidden {{ display:none !important; }}
 </style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>Gaika Monitor</h1>
-    <div class="meta">Generated {now} · ノーレバレッジ外貨取引大会 · {analyzed}/{total} 記事分析済</div>
-    <div class="pill-row">
-      <div class="stat-pill"><span class="num">{posted}</span> 今週投稿</div>
-      <div class="stat-pill"><span class="num">{active}</span> ポジションあり</div>
-    </div>
-  </div>
+<header class="page">
+  <h1>Gaika Monitor</h1>
+  <span class="meta">第{week_no}週 · {now.strftime("%Y-%m-%d %H:%M JST")} 生成 · 元手100,000円 · {posted}/{len(states)}チームが今週投稿</span>
 </header>
 
-<div class="kpi-row">
-  <div class="kpi-tile">
-    <div class="kpi-label">参加チーム</div>
-    <div class="kpi-value">{kpi["n_teams"]}</div>
-  </div>
-  <div class="kpi-tile">
-    <div class="kpi-label">現在の首位</div>
-    <div class="kpi-value">{leader_html}</div>
-  </div>
-  <div class="kpi-tile">
-    <div class="kpi-label">プラス / マイナス</div>
-    <div class="kpi-value"><span class="kpi-pos">{kpi["n_gain"]}</span> <span class="muted" style="font-size:16px">/</span> <span class="kpi-neg">{kpi["n_loss"]}</span></div>
-  </div>
-  <div class="kpi-tile">
-    <div class="kpi-label">平均損益</div>
-    <div class="kpi-value {avg_class}">{avg_sign}{avg_delta:,.0f}<span class="lb-yen" style="font-size:13px">円</span></div>
-  </div>
+<div class="kpis">
+  <div class="kpi"><div class="kpi-label">首位</div><div class="kpi-value">{leader_html}</div></div>
+  <div class="kpi"><div class="kpi-label">プラス圏 / マイナス圏</div>
+    <div class="kpi-value"><span class="pos">{n_gain}</span><span class="muted" style="font-size:15px"> / </span><span class="neg">{n_loss}</span></div></div>
+  <div class="kpi"><div class="kpi-label">平均損益</div>
+    <div class="kpi-value {"pos" if avg >= 0 else "neg"}">{"+" if avg >= 0 else ""}{avg:,.0f}<span class="unit">円</span></div></div>
+  <div class="kpi"><div class="kpi-label">参加チーム</div><div class="kpi-value">{len(states)}</div></div>
 </div>
 
-<div class="leaderboard-card">
-  <h2>順位 — 総残高と推移 (元手 100,000円)</h2>
+<div class="lb">
+  <h2>順位 — 記事に記載された総残高で順位付け（行クリックでカードへ）</h2>
   <div class="lb-scroll">
-  {lb_rows_html}
+{lb}
   </div>
 </div>
 
-<div class="charts">
-  <div class="chart-card">
-    <h2>Currency Distribution (# Teams Holding)</h2>
-    <canvas id="curChart"></canvas>
-  </div>
-  <div class="chart-card">
-    <h2>Trade Count per Team</h2>
-    <canvas id="tradeChart"></canvas>
-  </div>
+<div class="controls">
+  <input id="q" type="text" placeholder="チーム名・スタイルで絞り込み...">
 </div>
 
-<div class="table-wrap">
-  <div class="controls">
-    <input id="search" type="text" placeholder="チーム名 / 通貨で検索...">
-    <label><input type="checkbox" id="filterPosted"> 今週投稿のみ</label>
-    <label><input type="checkbox" id="filterActive"> ポジションありのみ</label>
-  </div>
-
-  <table id="posTable">
-    <thead>
-      <tr>
-        <th>チーム</th>
-        <th>投稿日時</th>
-        <th>タイトル</th>
-        <th>取引</th>
-        <th>保有通貨</th>
-        <th>意図・戦略</th>
-        <th>前回との変化</th>
-      </tr>
-    </thead>
-    <tbody id="tbody">
-      {rows_html}
-    </tbody>
-  </table>
+<div class="cards">
+{cards}
 </div>
 
 <script>
-const RAW = {chart_data};
-
-new Chart(document.getElementById('curChart'), {{
-  type: 'bar',
-  data: {{
-    labels: RAW.cur_labels,
-    datasets: [{{ data: RAW.cur_data, backgroundColor: RAW.cur_colors, borderWidth: 0 }}]
-  }},
-  options: {{
-    indexAxis: 'y',
-    plugins: {{ legend: {{ display: false }} }},
-    scales: {{
-      x: {{ ticks: {{ color:'#8b949e', stepSize:1 }}, grid: {{ color:'#21262d' }} }},
-      y: {{ ticks: {{ color:'#e6edf3', font:{{ size:11 }} }}, grid: {{ display:false }} }}
-    }}
-  }}
-}});
-
-new Chart(document.getElementById('tradeChart'), {{
-  type: 'bar',
-  data: {{
-    labels: RAW.team_labels,
-    datasets: [{{ data: RAW.team_trades, backgroundColor: '#58a6ff', borderWidth:0 }}]
-  }},
-  options: {{
-    plugins: {{ legend: {{ display:false }} }},
-    scales: {{
-      x: {{ ticks: {{ color:'#8b949e', font:{{ size:10 }}, maxRotation:45 }}, grid:{{ display:false }} }},
-      y: {{ ticks: {{ color:'#8b949e', stepSize:1 }}, grid:{{ color:'#21262d' }} }}
-    }}
-  }}
-}});
-
-function buildGroups() {{
-  const g = {{}};
-  document.querySelectorAll('#tbody tr').forEach(r => {{
-    const t = r.dataset.team;
-    if (!g[t]) g[t] = [];
-    g[t].push(r);
+document.getElementById('q').addEventListener('input', e => {{
+  const q = e.target.value.toLowerCase();
+  document.querySelectorAll('.card').forEach(c => {{
+    c.classList.toggle('hidden', q && !c.dataset.name.toLowerCase().includes(q));
   }});
-  return g;
-}}
-const GROUPS = buildGroups();
-
-function filter() {{
-  const q      = document.getElementById('search').value.toLowerCase();
-  const post   = document.getElementById('filterPosted').checked;
-  const active = document.getElementById('filterActive').checked;
-  for (const rows of Object.values(GROUPS)) {{
-    const text     = rows.map(r => r.textContent).join(' ').toLowerCase();
-    const thisWeek = rows[0].dataset.week === '1';
-    const hasCur   = rows[0].querySelector('.cur-chip') !== null;
-    const hide = (q && !text.includes(q)) || (post && !thisWeek) || (active && !hasCur);
-    rows.forEach(r => r.classList.toggle('hidden', hide));
+}});
+function jumpTo(name) {{
+  const el = document.getElementById('team-' + name);
+  if (el) {{
+    el.scrollIntoView({{behavior:'smooth', block:'center'}});
+    el.style.outline = '2px solid var(--accent)';
+    setTimeout(() => el.style.outline = '', 1600);
   }}
-}}
-
-document.getElementById('search').addEventListener('input', filter);
-document.getElementById('filterPosted').addEventListener('change', filter);
-document.getElementById('filterActive').addEventListener('change', filter);
-
-function toggleEdit(el) {{
-  const panel = el.querySelector('.edit-panel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-}}
-
-function copyEdit(btn) {{
-  const ta = btn.previousElementSibling;
-  navigator.clipboard.writeText(ta.value).then(() => {{
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy JSON', 1500);
-  }});
 }}
 </script>
 </body>
-</html>"""
+</html>'''
 
 
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
     if not LOG.exists():
-        print(f"ERROR: {LOG} not found. Run fetch_articles.py first.")
-        raise SystemExit(1)
+        raise SystemExit(f"ERROR: {LOG} not found. Run fetch_articles.py first.")
 
-    log_data  = json.loads(LOG.read_text(encoding="utf-8"))
-    all_arts  = log_data.get("articles", {})
+    log_data = json.loads(LOG.read_text(encoding="utf-8"))
+    all_arts = log_data.get("articles", {})
 
-    # Load overrides
     overrides = {}
     if OVERRIDES.exists():
-        raw_ov = json.loads(OVERRIDES.read_text(encoding="utf-8"))
-        overrides = {k: v for k, v in raw_ov.items() if not k.startswith("_")}
+        raw = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+        overrides = {k: v for k, v in raw.items() if not k.startswith("_")}
 
-    # Apply overrides into article entries (non-destructively for this run)
-    entries: dict = {}
+    profiles = {}
+    if PROFILES.exists():
+        raw = json.loads(PROFILES.read_text(encoding="utf-8"))
+        profiles = {k: v for k, v in raw.items() if not k.startswith("_")}
+
+    team_articles: dict[str, list] = {u: [] for u in TEAMS}
     for url, art in all_arts.items():
         entry = dict(art)
         if url in overrides:
@@ -847,73 +618,23 @@ def main():
             if "relevant" in ov:
                 entry["relevant"] = ov["relevant"]
             if "analysis" in ov:
-                if entry.get("analysis"):
-                    merged = dict(entry["analysis"])
-                    merged.update(ov["analysis"])
-                    entry["analysis"] = merged
-                else:
-                    entry["analysis"] = ov["analysis"]
-                entry["analyzed"] = True
-        entries[url] = entry
+                merged = dict(entry.get("analysis") or {})
+                merged.update(ov["analysis"])
+                entry["analysis"] = merged
+        if entry.get("relevant") is not True:
+            continue
+        if entry.get("username") in team_articles:
+            team_articles[entry["username"]].append(entry)
 
-    # Group by team, filter out irrelevant, sort by date desc
-    teams_list = [
-        "cool_parrot6215", "gaikafuru", "kiajobhunting", "gakusei_kangae",
-        "masashi_uclab", "keylink_by_kk", "atsuya_044", "joyful_turtle486",
-        "kanno_wmori", "saku03081", "re_0oji", "yuyu10y", "mtk____",
-        "mafty_navueerin", "kyoichi_osaka", "toshiki_naka", "tomoro_0726",
-        "lovely_rue455", "ionub", "legal_wren2006", "nasgor", "fast_crocus9353",
-    ]
-    team_articles = {u: [] for u in teams_list}
+    states = [team_state(u, arts, profiles.get(u, {})) for u, arts in team_articles.items()]
 
-    for url, art in entries.items():
-        uname = art.get("username", "")
-        if art.get("relevant") is False:
-            continue  # explicitly marked irrelevant
-        if uname in team_articles:
-            team_articles[uname].append(art)
-
-    # Sort each team's articles newest-first
-    for uname in team_articles:
-        team_articles[uname].sort(
-            key=lambda a: a.get("post_date") or "", reverse=True
-        )
-    # Full (untruncated) history is needed for the leaderboard's balance-over-time
-    # trend — the detail table below only ever needs the 3 most recent per team.
-    team_history_full = {u: list(arts) for u, arts in team_articles.items()}
-    for uname in team_articles:
-        team_articles[uname] = team_articles[uname][:3]
-
-    # Stats — only count relevant articles (irrelevant ones are discarded from report)
-    all_entries     = list(entries.values())
-    relevant_entries = [a for a in all_entries if a.get("relevant") is not False]
-    analyzed_count  = sum(1 for a in relevant_entries if a.get("analyzed"))
-    total_articles  = len(relevant_entries)
-    posted_count    = sum(
-        1 for arts in team_articles.values()
-        if any(a.get("this_week") for a in arts)
-    )
-    active_count    = sum(
-        1 for arts in team_articles.values()
-        if any(
-            a.get("analysis") and a["analysis"].get("holdings") and
-            any(h.get("currency", "").upper() != "JPY" for h in a["analysis"]["holdings"])
-            for a in arts
-        )
-    )
-
-    stats = {
-        "posted":          posted_count,
-        "active":          active_count,
-        "analyzed":        analyzed_count,
-        "total_articles":  total_articles,
-    }
-
-    html = build_html(team_articles, stats, team_history_full)
+    html = build_html(states)
     OUTPUT.parent.mkdir(exist_ok=True)
     OUTPUT.write_text(html, encoding="utf-8")
     fx_rates.flush()
-    print(f"Report written -> {OUTPUT}  ({len(teams_list)} teams, {analyzed_count}/{total_articles} analyzed)")
+
+    n_rel = sum(len(a) for a in team_articles.values())
+    print(f"Report written -> {OUTPUT}  ({len(TEAMS)} teams, {n_rel} relevant articles)")
 
 
 if __name__ == "__main__":

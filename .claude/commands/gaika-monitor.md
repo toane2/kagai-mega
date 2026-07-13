@@ -101,3 +101,6 @@ Then 2-3 sentences on notable patterns.
 | legal_wren2006 | https://note.com/legal_wren2006 |
 | nasgor | https://note.com/nasgor |
 | fast_crocus9353 | https://note.com/fast_crocus9353 |
+| suppera | https://note.com/suppera |
+
+Note: `suppera` is OUR OWN team (東京大学Agents). It is highlighted as 自チーム in the report (`OWN_TEAM` in generate_report.py).

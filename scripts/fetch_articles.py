@@ -47,11 +47,13 @@ TEAMS = [
     "legal_wren2006",
     "nasgor",
     "fast_crocus9353",
+    "suppera",   # our own team
 ]
 
-NOTE_API_CONTENTS = "https://note.com/api/v2/creators/{username}/contents?kind=note&page=1"
+NOTE_API_CONTENTS = "https://note.com/api/v2/creators/{username}/contents?kind=note&page={page}"
 NOTE_ARTICLE_URL  = "https://note.com/{username}/n/{key}"
-ARTICLES_PER_TEAM = 5   # check top N from each team to catch anything new
+MAX_PAGES = 10   # paginate through all of an account's articles (participants may
+                 # publish many posts; only checking the newest few silently misses some)
 
 HEADERS = {
     "User-Agent": (
@@ -201,21 +203,34 @@ def main():
 
     print(f"Log loaded: {len(articles)} existing entries")
     print(f"Week cutoff (JST): {cutoff.isoformat()}")
-    print(f"Checking {len(TEAMS)} teams (top {ARTICLES_PER_TEAM} each)...\n")
+    print(f"Checking {len(TEAMS)} teams (all pages, up to {MAX_PAGES})...\n")
 
     total_new = 0
     for i, username in enumerate(TEAMS, 1):
         print(f"[{i:02d}/{len(TEAMS)}] {username}", end=" ... ", flush=True)
 
-        data = api_get(NOTE_API_CONTENTS.format(username=username), f"{username}/contents")
-        if not data:
-            print("API error")
+        # Walk every page of the account's article list — not just the newest
+        # posts — so multi-post weeks are never missed.
+        contents = []
+        for page in range(1, MAX_PAGES + 1):
+            data = api_get(
+                NOTE_API_CONTENTS.format(username=username, page=page),
+                f"{username}/contents p{page}",
+            )
+            if not data:
+                break
+            d = data.get("data", {})
+            contents.extend(d.get("contents", []))
+            if d.get("isLastPage", True):
+                break
+            time.sleep(DELAY)
+        if not contents:
+            print("API error / no articles")
             continue
 
-        contents = data.get("data", {}).get("contents", [])
         new_count = 0
 
-        for item in contents[:ARTICLES_PER_TEAM]:
+        for item in contents:
             key      = item.get("key", "")
             url      = NOTE_ARTICLE_URL.format(username=username, key=key)
             pub_date = item.get("publishAt")
